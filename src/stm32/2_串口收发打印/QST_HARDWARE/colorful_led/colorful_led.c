@@ -3,17 +3,17 @@
 u8 L_ws_data[ws_num];
 u8 R_ws_data[ws_num];
 /**************************************************************************
-º¯Êı¹¦ÄÜ£ºcolorful_led½Ó¿Ú³õÊ¼»¯
-Èë¿Ú²ÎÊı£ºÎŞ
-·µ»Ø  Öµ£ºÎŞ
+å‡½æ•°åŠŸèƒ½ï¼šcolorful_ledæ¥å£åˆå§‹åŒ–
+å…¥å£å‚æ•°ï¼šæ— 
+è¿”å›  å€¼ï¼šæ— 
 **************************************************************************/
 void colorful_led_Init(void) {
   GPIO_InitTypeDef GPIO_InitStructure;
-  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);    // Ê¹ÄÜ¶Ë¿ÚÊ±ÖÓ
-  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13 | GPIO_Pin_14; // ¶Ë¿ÚÅäÖÃ
-  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;         // ÍÆÍìÊä³ö
+  RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC, ENABLE);    // ä½¿èƒ½ç«¯å£æ—¶é’Ÿ
+  GPIO_InitStructure.GPIO_Pin = GPIO_Pin_13 | GPIO_Pin_14; // ç«¯å£é…ç½®
+  GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;         // æ¨æŒ½è¾“å‡º
   GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;        // 50M
-  GPIO_Init(GPIOC, &GPIO_InitStructure); // ¸ù¾İÉè¶¨²ÎÊı³õÊ¼»¯GPIOA
+  GPIO_Init(GPIOC, &GPIO_InitStructure); // æ ¹æ®è®¾å®šå‚æ•°åˆå§‹åŒ–GPIOA
 }
 
 void L_send_0(void) {
@@ -55,14 +55,14 @@ void R_ws2812_reset(void) {
 }
 
 void L_ws2812_rgb(u8 L_ws_num, u8 ws_r, u8 ws_g,
-                  u8 ws_b) // ½«ÑÕÉ«Êı¾İ·¢ËÍµ½Êı×éÖĞ
+                  u8 ws_b) // å°†é¢œè‰²æ•°æ®å‘é€åˆ°æ•°ç»„ä¸­
 {
   L_ws_data[(L_ws_num - 1) * 3] = ws_g;
   L_ws_data[(L_ws_num - 1) * 3 + 1] = ws_r;
   L_ws_data[(L_ws_num - 1) * 3 + 2] = ws_b;
 }
 
-void L_ws2812_refresh(u8 ws_count) // ¸ù¾İÊı×éÊı¾İ¶Ô¶ÔÓ¦µÄµÆ½øĞĞµãÁÁ
+void L_ws2812_refresh(u8 ws_count) // æ ¹æ®æ•°ç»„æ•°æ®å¯¹å¯¹åº”çš„ç¯è¿›è¡Œç‚¹äº®
 {
   u8 L_ws_ri = 0;
 
@@ -101,19 +101,19 @@ void L_ws2812_refresh(u8 ws_count) // ¸ù¾İÊı×éÊı¾İ¶Ô¶ÔÓ¦µÄµÆ½øĞĞµãÁÁ
       L_send_1();
   }
 
-  // ÑÓÊ±Ò»¶ÎÊ±¼ä
+  // å»¶æ—¶ä¸€æ®µæ—¶é—´
   L_ws2812_reset();
 }
 
 void R_ws2812_rgb(u8 R_ws_num, u8 ws_r, u8 ws_g,
-                  u8 ws_b) // ½«ÑÕÉ«Êı¾İ·¢ËÍµ½Êı×éÖĞ
+                  u8 ws_b) // å°†é¢œè‰²æ•°æ®å‘é€åˆ°æ•°ç»„ä¸­
 {
   R_ws_data[(R_ws_num - 1) * 3] = ws_g;
   R_ws_data[(R_ws_num - 1) * 3 + 1] = ws_r;
   R_ws_data[(R_ws_num - 1) * 3 + 2] = ws_b;
 }
 
-void R_ws2812_refresh(u8 ws_count) // ¸ù¾İÊı×éÊı¾İ¶Ô¶ÔÓ¦µÄµÆ½øĞĞµãÁÁ
+void R_ws2812_refresh(u8 ws_count) // æ ¹æ®æ•°ç»„æ•°æ®å¯¹å¯¹åº”çš„ç¯è¿›è¡Œç‚¹äº®
 {
   u8 R_ws_ri = 0;
 
@@ -152,10 +152,10 @@ void R_ws2812_refresh(u8 ws_count) // ¸ù¾İÊı×éÊı¾İ¶Ô¶ÔÓ¦µÄµÆ½øĞĞµãÁÁ
       R_send_1();
   }
 
-  // ÑÓÊ±Ò»¶ÎÊ±¼ä
+  // å»¶æ—¶ä¸€æ®µæ—¶é—´
   R_ws2812_reset();
 }
-/***Ç°µÆ²ÊÉ«ìÅ²ÊµÆ***/
+/***å‰ç¯å½©è‰²ç‚«å½©ç¯***/
 void L_led_mode(void) {
   u8 times;
   while (1) {
@@ -368,7 +368,7 @@ void L_led_mode(void) {
     delay_ms(1000);
   }
 }
-/***ºóµÆÎ²µÆ±íÊ¾µ¹³µ***/
+/***åç¯å°¾ç¯è¡¨ç¤ºå€’è½¦***/
 void R_led_mode(void) {
 
   R_ws2812_rgb(1, Red);
@@ -379,7 +379,7 @@ void R_led_mode(void) {
   R_ws2812_rgb(6, Red);
   R_ws2812_refresh(led_num);
 }
-/*****ºóµÆ¹Ø±Õ*****/
+/*****åç¯å…³é—­*****/
 void R_led_CLC(void) {
   R_ws2812_rgb(1, WS_DARK);
   R_ws2812_rgb(2, WS_DARK);
@@ -389,40 +389,40 @@ void R_led_CLC(void) {
   R_ws2812_rgb(6, WS_DARK);
   R_ws2812_refresh(led_num);
 }
-/*****Ç°µÆÅÜÂíµÆĞ§¹û*****/
-void L_runingled(void) // Ç°µÆÅÜÂíµÆ
+/*****å‰ç¯è·‘é©¬ç¯æ•ˆæœ*****/
+void L_runingled(void) // å‰ç¯è·‘é©¬ç¯
 {
   u8 i, j;
-  /*Á÷¹â*/
+  /*æµå…‰*/
   for (j = 1; j < 7; j++) {
-    for (i = 1; i < 7; i++) // °ÑµÆµÄÑÕÉ«Ğ´ÔÚÃ¿¸öµÆµÄÊı×éÖĞ
+    for (i = 1; i < 7; i++) // æŠŠç¯çš„é¢œè‰²å†™åœ¨æ¯ä¸ªç¯çš„æ•°ç»„ä¸­
     {
       if (i == j)
         L_ws2812_rgb(i, WS_WHITE);
       else
         L_ws2812_rgb(i, WS_DARK);
     }
-    L_ws2812_refresh(led_num); // ¸üĞÂµÆÑÕÉ«
+    L_ws2812_refresh(led_num); // æ›´æ–°ç¯é¢œè‰²
     delay_ms(100);
   }
-  /*·´Á÷¹â*/
+  /*åæµå…‰*/
   for (j = 6; j >= 1; j--) {
-    for (i = 6; i >= 1; i--) // °ÑµÆµÄÑÕÉ«Ğ´ÔÚÃ¿¸öµÆµÄÊı×éÖĞ
+    for (i = 6; i >= 1; i--) // æŠŠç¯çš„é¢œè‰²å†™åœ¨æ¯ä¸ªç¯çš„æ•°ç»„ä¸­
     {
       if (i == j)
         L_ws2812_rgb(i, WS_WHITE);
       else
         L_ws2812_rgb(i, WS_DARK);
     }
-    L_ws2812_refresh(led_num); // ¸üĞÂµÆÑÕÉ«
+    L_ws2812_refresh(led_num); // æ›´æ–°ç¯é¢œè‰²
     delay_ms(100);
   }
 
-  /***»ØÏì³µµÆ***/
+  /***å›å“è½¦ç¯***/
   while (1) {
-    for (j = 1; j < 6; j++) // »Ø
+    for (j = 1; j < 6; j++) // å›
     {
-      for (i = 1; i < 7; i++) // °ÑµÆµÄÑÕÉ«Ğ´ÔÚÃ¿¸öµÆµÄÊı×éÖĞ
+      for (i = 1; i < 7; i++) // æŠŠç¯çš„é¢œè‰²å†™åœ¨æ¯ä¸ªç¯çš„æ•°ç»„ä¸­
       {
         if (j == 1) // * _ _ _ _ *
         {
@@ -460,7 +460,7 @@ void L_runingled(void) // Ç°µÆÅÜÂíµÆ
             L_ws2812_rgb(i, WS_DARK);
         }
       }
-      L_ws2812_refresh(led_num); // ¸üĞÂµÆÑÕÉ«
+      L_ws2812_refresh(led_num); // æ›´æ–°ç¯é¢œè‰²
       if (j == 3)
         delay_ms(200);
       else
@@ -470,40 +470,40 @@ void L_runingled(void) // Ç°µÆÅÜÂíµÆ
     delay_ms(50);
   }
 }
-/*****ºóµÆÅÜÂíµÆĞ§¹û*****/
-void R_runingled(void) // ºóµÆÅÜÂíµÆ
+/*****åç¯è·‘é©¬ç¯æ•ˆæœ*****/
+void R_runingled(void) // åç¯è·‘é©¬ç¯
 {
   u8 i, j;
-  /*Á÷¹â*/
+  /*æµå…‰*/
   for (j = 1; j < 7; j++) {
-    for (i = 1; i < 7; i++) // °ÑµÆµÄÑÕÉ«Ğ´ÔÚÃ¿¸öµÆµÄÊı×éÖĞ
+    for (i = 1; i < 7; i++) // æŠŠç¯çš„é¢œè‰²å†™åœ¨æ¯ä¸ªç¯çš„æ•°ç»„ä¸­
     {
       if (i == j)
         R_ws2812_rgb(i, WS_WHITE);
       else
         R_ws2812_rgb(i, WS_DARK);
     }
-    R_ws2812_refresh(led_num); // ¸üĞÂµÆÑÕÉ«
+    R_ws2812_refresh(led_num); // æ›´æ–°ç¯é¢œè‰²
     delay_ms(100);
   }
-  /*·´Á÷¹â*/
+  /*åæµå…‰*/
   for (j = 6; j >= 1; j--) {
-    for (i = 6; i >= 1; i--) // °ÑµÆµÄÑÕÉ«Ğ´ÔÚÃ¿¸öµÆµÄÊı×éÖĞ
+    for (i = 6; i >= 1; i--) // æŠŠç¯çš„é¢œè‰²å†™åœ¨æ¯ä¸ªç¯çš„æ•°ç»„ä¸­
     {
       if (i == j)
         R_ws2812_rgb(i, WS_WHITE);
       else
         R_ws2812_rgb(i, WS_DARK);
     }
-    R_ws2812_refresh(led_num); // ¸üĞÂµÆÑÕÉ«
+    R_ws2812_refresh(led_num); // æ›´æ–°ç¯é¢œè‰²
     delay_ms(100);
   }
 
-  /***»ØÏì³µµÆ***/
+  /***å›å“è½¦ç¯***/
   while (1) {
-    for (j = 1; j < 6; j++) // »Ø
+    for (j = 1; j < 6; j++) // å›
     {
-      for (i = 1; i < 7; i++) // °ÑµÆµÄÑÕÉ«Ğ´ÔÚÃ¿¸öµÆµÄÊı×éÖĞ
+      for (i = 1; i < 7; i++) // æŠŠç¯çš„é¢œè‰²å†™åœ¨æ¯ä¸ªç¯çš„æ•°ç»„ä¸­
       {
         if (j == 1) // * _ _ _ _ *
         {
@@ -541,7 +541,7 @@ void R_runingled(void) // ºóµÆÅÜÂíµÆ
             R_ws2812_rgb(i, WS_DARK);
         }
       }
-      R_ws2812_refresh(led_num); // ¸üĞÂµÆÑÕÉ«
+      R_ws2812_refresh(led_num); // æ›´æ–°ç¯é¢œè‰²
       if (j == 3)
         delay_ms(200);
       else
@@ -552,3 +552,112 @@ void R_runingled(void) // ºóµÆÅÜÂíµÆ
   }
 }
 
+void LED_Off_Step(void) {
+  u8 i;
+
+  for (i = 1; i <= led_num; i++) {
+    L_ws2812_rgb(i, WS_DARK);
+    R_ws2812_rgb(i, WS_DARK);
+  }
+
+  L_ws2812_refresh(led_num);
+  R_ws2812_refresh(led_num);
+  delay_ms(20);
+}
+
+void Left_Running_Step(void) {
+  static u8 position = 1;
+  u8 i;
+
+  for (i = 1; i <= led_num; i++) {
+    if (i == position)
+      L_ws2812_rgb(i, WS_WHITE);
+    else
+      L_ws2812_rgb(i, WS_DARK);
+
+    R_ws2812_rgb(i, WS_DARK);
+  }
+
+  L_ws2812_refresh(led_num);
+  R_ws2812_refresh(led_num);
+
+  position++;
+  if (position > led_num)
+    position = 1;
+
+  delay_ms(100);
+}
+
+void Right_Running_Step(void) {
+  static u8 position = 1;
+  u8 i;
+
+  for (i = 1; i <= led_num; i++) {
+    L_ws2812_rgb(i, WS_DARK);
+
+    if (i == position)
+      R_ws2812_rgb(i, WS_WHITE);
+    else
+      R_ws2812_rgb(i, WS_DARK);
+  }
+
+  L_ws2812_refresh(led_num);
+  R_ws2812_refresh(led_num);
+
+  position++;
+  if (position > led_num)
+    position = 1;
+
+  delay_ms(100);
+}
+
+void Circle_Running_Step(void) {
+  static u8 position = 0;
+  u8 i;
+
+  for (i = 1; i <= led_num; i++) {
+    L_ws2812_rgb(i, WS_DARK);
+    R_ws2812_rgb(i, WS_DARK);
+  }
+
+  if (position < led_num)
+    L_ws2812_rgb(position + 1, WS_WHITE);
+  else
+    R_ws2812_rgb((led_num * 2) - position, WS_WHITE);
+
+  L_ws2812_refresh(led_num);
+  R_ws2812_refresh(led_num);
+
+  position++;
+  if (position >= led_num * 2)
+    position = 0;
+
+  delay_ms(100);
+}
+
+void Colorful_Step(void) {
+  static const u8 colors[6][3] = {{255, 0, 0},   {255, 255, 0}, {0, 255, 0},
+                                  {0, 255, 255}, {0, 0, 255},   {255, 0, 255}};
+  static u8 offset = 0;
+  u8 i;
+  u8 color_index;
+
+  for (i = 1; i <= led_num; i++) {
+    color_index = (i - 1 + offset) % 6;
+    L_ws2812_rgb(i, colors[color_index][0], colors[color_index][1],
+                 colors[color_index][2]);
+
+    color_index = (led_num - i + offset) % 6;
+    R_ws2812_rgb(i, colors[color_index][0], colors[color_index][1],
+                 colors[color_index][2]);
+  }
+
+  L_ws2812_refresh(led_num);
+  R_ws2812_refresh(led_num);
+
+  offset++;
+  if (offset >= 6)
+    offset = 0;
+
+  delay_ms(150);
+}

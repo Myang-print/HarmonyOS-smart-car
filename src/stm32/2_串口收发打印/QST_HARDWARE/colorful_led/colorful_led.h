@@ -189,4 +189,10 @@ void R_led_mode(void);
 void L_led_mode(void);
 void R_led_CLC(void);
 void L_runingled(void);    //前灯跑马灯
+void R_runingled(void); // 后灯跑马灯
+void LED_Off_Step(void);
+void Left_Running_Step(void);
+void Right_Running_Step(void);
+void Circle_Running_Step(void);
+void Colorful_Step(void);
 

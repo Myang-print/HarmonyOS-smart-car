@@ -1,5 +1,5 @@
 Dependencies for Project 'Template', Target 'Template': (DO NOT MODIFY !)
-F (.\main.c)(0x6A8D7727)(-c --cpu Cortex-M3 -g -O0 --apcs=interwork --split_sections -I ..\USER -I ..\CORE -I ..\STM32F10x_FWLib\inc -I ..\SYSTEM\delay -I ..\SYSTEM\sys -I ..\SYSTEM\usart -I ..\QST_HARDWARE\colorful_led -I ..\QST_HARDWARE\SYSTEM_CONTROL-I.\RTE\_Template-IC:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="525" -DSTM32F10X_MD -DSTM32F10X_MD -DUSE_STDPERIPH_DRIVER-o ..\obj\main.o --omf_browse ..\obj\main.crf --depend ..\obj\main.d)
+F (.\main.c)(0x6A8D9E8A)(-c --cpu Cortex-M3 -g -O0 --apcs=interwork --split_sections -I ..\USER -I ..\CORE -I ..\STM32F10x_FWLib\inc -I ..\SYSTEM\delay -I ..\SYSTEM\sys -I ..\SYSTEM\usart -I ..\QST_HARDWARE\colorful_led -I ..\QST_HARDWARE\SYSTEM_CONTROL-I.\RTE\_Template-IC:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="525" -DSTM32F10X_MD -DSTM32F10X_MD -DUSE_STDPERIPH_DRIVER-o ..\obj\main.o --omf_browse ..\obj\main.crf --depend ..\obj\main.d)
 I (C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include\stm32f10x.h)(0x528979E6)
 I (..\CORE\core_cm3.h)(0x4D523B58)
 I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
@@ -32,7 +32,7 @@ I (..\SYSTEM\sys\sys.h)(0x657ACAC9)
 I (..\SYSTEM\usart\usart.h)(0x65839FBC)
 I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x599ECD2C)
 I (..\SYSTEM\delay\delay.h)(0x657AC32D)
-I (..\QST_HARDWARE\colorful_led\colorful_led.h)(0x657ACAC9)
+I (..\QST_HARDWARE\colorful_led\colorful_led.h)(0x6A8D9E86)
 I (C:\Keil_v5\ARM\ARMCC\include\string.h)(0x599ECD2C)
 I (C:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x599ECD2C)
 I (C:\Keil_v5\ARM\ARMCC\include\math.h)(0x599ECD2E)
@@ -128,7 +128,7 @@ I (..\STM32F10x_FWLib\inc\stm32f10x_wwdg.h)(0x4D783BB4)
 I (..\STM32F10x_FWLib\inc\misc.h)(0x4D783BB4)
 I (..\SYSTEM\usart\usart.h)(0x65839FBC)
 I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x599ECD2C)
-I (..\QST_HARDWARE\colorful_led\colorful_led.h)(0x657ACAC9)
+I (..\QST_HARDWARE\colorful_led\colorful_led.h)(0x6A8D9E86)
 I (C:\Keil_v5\ARM\ARMCC\include\string.h)(0x599ECD2C)
 I (C:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x599ECD2C)
 I (C:\Keil_v5\ARM\ARMCC\include\math.h)(0x599ECD2E)
@@ -165,11 +165,13 @@ I (..\STM32F10x_FWLib\inc\misc.h)(0x4D783BB4)
 I (..\SYSTEM\usart\usart.h)(0x65839FBC)
 I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x599ECD2C)
 I (..\SYSTEM\delay\delay.h)(0x657AC32D)
-I (..\QST_HARDWARE\colorful_led\colorful_led.h)(0x657ACAC9)
+I (..\QST_HARDWARE\colorful_led\colorful_led.h)(0x6A8D9E86)
 I (C:\Keil_v5\ARM\ARMCC\include\string.h)(0x599ECD2C)
 I (C:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x599ECD2C)
 I (C:\Keil_v5\ARM\ARMCC\include\math.h)(0x599ECD2E)
-F (..\SYSTEM\usart\usart.c)(0x660621C6)(-c --cpu Cortex-M3 -g -O0 --apcs=interwork --split_sections -I ..\USER -I ..\CORE -I ..\STM32F10x_FWLib\inc -I ..\SYSTEM\delay -I ..\SYSTEM\sys -I ..\SYSTEM\usart -I ..\QST_HARDWARE\colorful_led -I ..\QST_HARDWARE\SYSTEM_CONTROL-I.\RTE\_Template-IC:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="525" -DSTM32F10X_MD -DSTM32F10X_MD -DUSE_STDPERIPH_DRIVER-o ..\obj\usart.o --omf_browse ..\obj\usart.crf --depend ..\obj\usart.d)
+F (..\SYSTEM\usart\usart.c)(0x6A8D9E82)(-c --cpu Cortex-M3 -g -O0 --apcs=interwork --split_sections -I ..\USER -I ..\CORE -I ..\STM32F10x_FWLib\inc -I ..\SYSTEM\delay -I ..\SYSTEM\sys -I ..\SYSTEM\usart -I ..\QST_HARDWARE\colorful_led -I ..\QST_HARDWARE\SYSTEM_CONTROL-I.\RTE\_Template-IC:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="525" -DSTM32F10X_MD -DSTM32F10X_MD -DUSE_STDPERIPH_DRIVER-o ..\obj\usart.o --omf_browse ..\obj\usart.crf --depend ..\obj\usart.d)
+I (..\SYSTEM\usart\usart.h)(0x65839FBC)
+I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x599ECD2C)
 I (..\SYSTEM\sys\sys.h)(0x657ACAC9)
 I (C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include\stm32f10x.h)(0x528979E6)
 I (..\CORE\core_cm3.h)(0x4D523B58)
@@ -199,10 +201,8 @@ I (..\STM32F10x_FWLib\inc\stm32f10x_tim.h)(0x4D783BB4)
 I (..\STM32F10x_FWLib\inc\stm32f10x_usart.h)(0x504F415E)
 I (..\STM32F10x_FWLib\inc\stm32f10x_wwdg.h)(0x4D783BB4)
 I (..\STM32F10x_FWLib\inc\misc.h)(0x4D783BB4)
-I (..\SYSTEM\usart\usart.h)(0x65839FBC)
-I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x599ECD2C)
 I (..\SYSTEM\delay\delay.h)(0x657AC32D)
-I (..\QST_HARDWARE\colorful_led\colorful_led.h)(0x657ACAC9)
+I (..\QST_HARDWARE\colorful_led\colorful_led.h)(0x6A8D9E86)
 I (C:\Keil_v5\ARM\ARMCC\include\string.h)(0x599ECD2C)
 I (C:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x599ECD2C)
 I (C:\Keil_v5\ARM\ARMCC\include\math.h)(0x599ECD2E)
@@ -876,8 +876,8 @@ I (..\STM32F10x_FWLib\inc\stm32f10x_spi.h)(0x4D783BB4)
 I (..\STM32F10x_FWLib\inc\stm32f10x_tim.h)(0x4D783BB4)
 I (..\STM32F10x_FWLib\inc\stm32f10x_usart.h)(0x504F415E)
 I (..\STM32F10x_FWLib\inc\misc.h)(0x4D783BB4)
-F (..\QST_HARDWARE\colorful_led\colorful_led.c)(0x6A8D76F3)(-c --cpu Cortex-M3 -g -O0 --apcs=interwork --split_sections -I ..\USER -I ..\CORE -I ..\STM32F10x_FWLib\inc -I ..\SYSTEM\delay -I ..\SYSTEM\sys -I ..\SYSTEM\usart -I ..\QST_HARDWARE\colorful_led -I ..\QST_HARDWARE\SYSTEM_CONTROL-I.\RTE\_Template-IC:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="525" -DSTM32F10X_MD -DSTM32F10X_MD -DUSE_STDPERIPH_DRIVER-o ..\obj\colorful_led.o --omf_browse ..\obj\colorful_led.crf --depend ..\obj\colorful_led.d)
-I (..\QST_HARDWARE\colorful_led\colorful_led.h)(0x657ACAC9)
+F (..\QST_HARDWARE\colorful_led\colorful_led.c)(0x6A8D9E7B)(-c --cpu Cortex-M3 -g -O0 --apcs=interwork --split_sections -I ..\USER -I ..\CORE -I ..\STM32F10x_FWLib\inc -I ..\SYSTEM\delay -I ..\SYSTEM\sys -I ..\SYSTEM\usart -I ..\QST_HARDWARE\colorful_led -I ..\QST_HARDWARE\SYSTEM_CONTROL-I.\RTE\_Template-IC:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="525" -DSTM32F10X_MD -DSTM32F10X_MD -DUSE_STDPERIPH_DRIVER-o ..\obj\colorful_led.o --omf_browse ..\obj\colorful_led.crf --depend ..\obj\colorful_led.d)
+I (..\QST_HARDWARE\colorful_led\colorful_led.h)(0x6A8D9E86)
 I (..\SYSTEM\sys\sys.h)(0x657ACAC9)
 I (C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include\stm32f10x.h)(0x528979E6)
 I (..\CORE\core_cm3.h)(0x4D523B58)
