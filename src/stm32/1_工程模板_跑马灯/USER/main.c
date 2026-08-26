@@ -13,9 +13,8 @@ int main(void)
 		colorful_led_Init();            //=====炫彩灯初始化
 		//SysTick_Config(72000000/1000);		//滴答定时器，每1ms触发一次中断
     
-		// L_runingled();                  //前灯特效
-		// R_runingled();                //后灯特效
-		CIRCLE_runingled();
+		//L_runingled();                  //前灯特效
+		R_runingled();                //后灯特效
 		/**主要程序**/
 	while(1)
 	{

@@ -551,7 +551,7 @@ void R_runingled(void) // 后灯跑马灯
     delay_ms(50);
   }
 }
-
+/**前灯关闭**/
 void LED_Off_Step(void) {
   u8 i;
 
@@ -564,7 +564,7 @@ void LED_Off_Step(void) {
   R_ws2812_refresh(led_num);
   delay_ms(20);
 }
-
+/**前灯流光灯效果**/
 void Left_Running_Step(void) {
   static u8 position = 1;
   u8 i;
@@ -587,7 +587,7 @@ void Left_Running_Step(void) {
 
   delay_ms(100);
 }
-
+/**后灯流光灯效果**/
 void Right_Running_Step(void) {
   static u8 position = 1;
   u8 i;
@@ -610,7 +610,7 @@ void Right_Running_Step(void) {
 
   delay_ms(100);
 }
-
+/**环形跑马灯效果**/
 void Circle_Running_Step(void) {
   static u8 position = 0;
   u8 i;
@@ -634,7 +634,7 @@ void Circle_Running_Step(void) {
 
   delay_ms(100);
 }
-
+/**环形炫彩灯效果**/
 void Colorful_Step(void) {
   static const u8 colors[6][3] = {{255, 0, 0},   {255, 255, 0}, {0, 255, 0},
                                   {0, 255, 255}, {0, 0, 255},   {255, 0, 255}};
