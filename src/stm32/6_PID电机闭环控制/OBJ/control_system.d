@@ -29,6 +29,7 @@
 ..\obj\control_system.o: ..\STM32F10x_FWLib\inc\stm32f10x_usart.h
 ..\obj\control_system.o: ..\STM32F10x_FWLib\inc\stm32f10x_wwdg.h
 ..\obj\control_system.o: ..\STM32F10x_FWLib\inc\misc.h
+..\obj\control_system.o: ..\QST_HARDWARE\colorful_led\colorful_led.h
 ..\obj\control_system.o: ..\SYSTEM\sys\sys.h
 ..\obj\control_system.o: ..\SYSTEM\usart\usart.h
 ..\obj\control_system.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
@@ -38,3 +39,4 @@
 ..\obj\control_system.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
 ..\obj\control_system.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
 ..\obj\control_system.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
+..\obj\control_system.o: ..\QST_HARDWARE\encoder\encoder.h
