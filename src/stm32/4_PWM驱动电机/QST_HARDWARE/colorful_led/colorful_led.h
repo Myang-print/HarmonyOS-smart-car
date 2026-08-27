@@ -5,7 +5,7 @@
 #define DIL PCout(13) 
 #define DIR PCout(14) 
 
-//****************RGBµÆ´øÑÕÉ«±í*****************//
+//****************RGBï¿½Æ´ï¿½ï¿½ï¿½É«ï¿½ï¿½*****************//
 #define WS_DARK  0,0,0
 #define WS_WHITE  255,255,255
 #define WS_RED   255,0,0
@@ -188,5 +188,18 @@ void R_ws2812_refresh(u8 ws_count);
 void R_led_mode(void);
 void L_led_mode(void);
 void R_led_CLC(void);
-void L_runingled(void);    //Ç°µÆÅÜÂíµÆ
+void L_runingled(void);    //Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+void R_runingled(void); // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
+void LED_Off_Step(void);
+void Left_Running_Step(void);
+void Right_Running_Step(void);
+void Circle_Running_Step(void);
+void Colorful_Step(void);
+void LED_All_Off_Step(void);
+void LED_Red_Clockwise_Step(void);
+void LED_Blue_CounterClockwise_Step(void);
+void LED_Colorful_Ring_Step(void);
+void LED_Red_Breathing_Step(void);
+void LED_Red_Clockwise_Gradient_Step(void);
+void LED_Blue_CounterClockwise_Gradient_Step(void);
 

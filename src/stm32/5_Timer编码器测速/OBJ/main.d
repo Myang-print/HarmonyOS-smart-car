@@ -37,4 +37,5 @@
 ..\obj\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
 ..\obj\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
 ..\obj\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
+..\obj\main.o: ..\QST_HARDWARE\encoder\encoder.h
 ..\obj\main.o: ..\QST_HARDWARE\SYSTEM_CONTROL\control_system.h
