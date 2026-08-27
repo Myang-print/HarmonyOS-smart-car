@@ -25,13 +25,23 @@
 #define LEFT_ENCODER_FORWARD_SIGN   ((s16)1)
 #define RIGHT_ENCODER_FORWARD_SIGN  ((s16)1)
 
-/* 增量 PI 与左右轮同步纠偏参数。 */
+/* 增量 PI 参数。 */
 #define CAR_PI_KP                   (7.0f)
 #define CAR_PI_KI                   (0.8f)
-#define CAR_PWM_FEEDFORWARD         ((s16)4200)
-#define CAR_SYNC_SPEED_KP           (0.20f)
-#define CAR_SYNC_POSITION_KP        (0.010f)
-#define CAR_SYNC_LIMIT_COUNTS       ((s16)35)
+
+/* 根据实测稳定 PWM 设置前进前馈；后退已经稳定，保留原前馈。 */
+#define CAR_FORWARD_LEFT_FEEDFORWARD  ((s16)3000)
+#define CAR_FORWARD_RIGHT_FEEDFORWARD ((s16)3300)
+#define CAR_REVERSE_LEFT_FEEDFORWARD  ((s16)4200)
+#define CAR_REVERSE_RIGHT_FEEDFORWARD ((s16)4200)
+
+/* 前进优先约束瞬时速度一致，后退保持已经验证可用的同步参数。 */
+#define CAR_FORWARD_SYNC_SPEED_KP     (0.60f)
+#define CAR_FORWARD_SYNC_POSITION_KP  (0.005f)
+#define CAR_FORWARD_SYNC_LIMIT_COUNTS ((s16)45)
+#define CAR_REVERSE_SYNC_SPEED_KP     (0.20f)
+#define CAR_REVERSE_SYNC_POSITION_KP  (0.010f)
+#define CAR_REVERSE_SYNC_LIMIT_COUNTS ((s16)35)
 
 typedef void (*ControlLedStep)(void);
 

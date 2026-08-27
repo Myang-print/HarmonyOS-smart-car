@@ -166,10 +166,11 @@ void Control_System_Init(void)
 返回值  ：无
 说明    ：前馈 PWM 负责克服电机静摩擦，PI 只修正速度误差
 **************************************************************************/
-static void SpeedPI_Reset(SpeedPI *controller, s8 direction)
+static void SpeedPI_Reset(SpeedPI *controller, s8 direction,
+                          s16 feedforward_pwm)
 {
     controller->last_error = 0.0f;
-    controller->output = (float)((s16)direction * CAR_PWM_FEEDFORWARD);
+    controller->output = (float)((s16)direction * feedforward_pwm);
 }
 
 /**************************************************************************
@@ -271,6 +272,9 @@ static s16 CalculateSyncCorrection(s8 left_direction, s8 right_direction,
     s16 right_motion_speed;
     s32 position_error;
     float correction;
+    float speed_gain;
+    float position_gain;
+    s16 correction_limit;
 
     if (left_direction == 0 || right_direction == 0)
         return 0;
@@ -280,14 +284,26 @@ static s16 CalculateSyncCorrection(s8 left_direction, s8 right_direction,
     position_error = (s32)feedback->left_progress
                    - (s32)feedback->right_progress;
 
-    correction = CAR_SYNC_SPEED_KP
-               * (float)(left_motion_speed - right_motion_speed)
-               + CAR_SYNC_POSITION_KP * (float)position_error;
+    if (left_direction > 0)
+    {
+        speed_gain = CAR_FORWARD_SYNC_SPEED_KP;
+        position_gain = CAR_FORWARD_SYNC_POSITION_KP;
+        correction_limit = CAR_FORWARD_SYNC_LIMIT_COUNTS;
+    }
+    else
+    {
+        speed_gain = CAR_REVERSE_SYNC_SPEED_KP;
+        position_gain = CAR_REVERSE_SYNC_POSITION_KP;
+        correction_limit = CAR_REVERSE_SYNC_LIMIT_COUNTS;
+    }
 
-    if (correction > (float)CAR_SYNC_LIMIT_COUNTS)
-        correction = (float)CAR_SYNC_LIMIT_COUNTS;
-    else if (correction < -(float)CAR_SYNC_LIMIT_COUNTS)
-        correction = -(float)CAR_SYNC_LIMIT_COUNTS;
+    correction = speed_gain * (float)(left_motion_speed - right_motion_speed)
+               + position_gain * (float)position_error;
+
+    if (correction > (float)correction_limit)
+        correction = (float)correction_limit;
+    else if (correction < -(float)correction_limit)
+        correction = -(float)correction_limit;
 
     return (s16)correction;
 }
@@ -372,8 +388,20 @@ static void RunPIDAction(s8 left_direction, s8 right_direction,
     elapsed = 0;
     control_step = 0;
 
-    SpeedPI_Reset(&left_controller, left_direction);
-    SpeedPI_Reset(&right_controller, right_direction);
+    if (left_direction > 0)
+    {
+        SpeedPI_Reset(&left_controller, left_direction,
+                      CAR_FORWARD_LEFT_FEEDFORWARD);
+        SpeedPI_Reset(&right_controller, right_direction,
+                      CAR_FORWARD_RIGHT_FEEDFORWARD);
+    }
+    else
+    {
+        SpeedPI_Reset(&left_controller, left_direction,
+                      CAR_REVERSE_LEFT_FEEDFORWARD);
+        SpeedPI_Reset(&right_controller, right_direction,
+                      CAR_REVERSE_RIGHT_FEEDFORWARD);
+    }
     Encoder_Reset();
 
     while (elapsed < run_time_ms)
@@ -386,9 +414,11 @@ static void RunPIDAction(s8 left_direction, s8 right_direction,
         left_target = (s16)(base_target - correction);
         right_target = (s16)(base_target + correction);
         left_target = ClampS16(left_target, CAR_MIN_TARGET_COUNTS,
-                               CAR_CRUISE_COUNTS + CAR_SYNC_LIMIT_COUNTS);
+                               CAR_CRUISE_COUNTS
+                               + CAR_FORWARD_SYNC_LIMIT_COUNTS);
         right_target = ClampS16(right_target, CAR_MIN_TARGET_COUNTS,
-                                CAR_CRUISE_COUNTS + CAR_SYNC_LIMIT_COUNTS);
+                                CAR_CRUISE_COUNTS
+                                + CAR_FORWARD_SYNC_LIMIT_COUNTS);
 
         left_target = (s16)(left_target * left_direction);
         right_target = (s16)(right_target * right_direction);

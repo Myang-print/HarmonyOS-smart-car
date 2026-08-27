@@ -3,7 +3,7 @@
 <title>Static Call Graph - [..\OBJ\Template.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image ..\OBJ\Template.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Thu Aug 27 11:41:12 2026
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Thu Aug 27 11:50:34 2026
 <BR><P>
 <H3>Maximum Stack Usage =        328 bytes + Unknown(Functions without stacksize, Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -1089,7 +1089,7 @@ Global Symbols
 
 <P><STRONG><a name="[ff]"></a>_fflt</STRONG> (Thumb, 48 bytes, Stack size 0 bytes, fflt_clz.o(x$fpl$fflt), UNUSED)
 
-<P><STRONG><a name="[76]"></a>__aeabi_cfcmple</STRONG> (Thumb, 0 bytes, Stack size 16 bytes, fleqf.o(x$fpl$fleqf))
+<P><STRONG><a name="[75]"></a>__aeabi_cfcmple</STRONG> (Thumb, 0 bytes, Stack size 16 bytes, fleqf.o(x$fpl$fleqf))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = __aeabi_cfcmple
 </UL>
 <BR>[Called By]<UL><LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SpeedPI_Update
@@ -1130,7 +1130,7 @@ Global Symbols
 <LI><a href="#[c7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;_fadd
 </UL>
 
-<P><STRONG><a name="[75]"></a>__aeabi_cfrcmple</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, frleqf.o(x$fpl$frleqf))
+<P><STRONG><a name="[76]"></a>__aeabi_cfrcmple</STRONG> (Thumb, 0 bytes, Stack size 0 bytes, frleqf.o(x$fpl$frleqf))
 <BR><BR>[Called By]<UL><LI><a href="#[af]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;SpeedPI_Update
 <LI><a href="#[71]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;CalculateSyncCorrection
 </UL>
@@ -1207,12 +1207,12 @@ Local Symbols
 <LI><a href="#[95]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;LED_All_Off_Step
 </UL>
 
-<P><STRONG><a name="[71]"></a>CalculateSyncCorrection</STRONG> (Thumb, 124 bytes, Stack size 48 bytes, control_system.o(i.CalculateSyncCorrection))
-<BR><BR>[Stack]<UL><LI>Max Depth = 64<LI>Call Chain = CalculateSyncCorrection &rArr; __aeabi_fmul
+<P><STRONG><a name="[71]"></a>CalculateSyncCorrection</STRONG> (Thumb, 188 bytes, Stack size 56 bytes, control_system.o(i.CalculateSyncCorrection))
+<BR><BR>[Stack]<UL><LI>Max Depth = 72<LI>Call Chain = CalculateSyncCorrection &rArr; __aeabi_fmul
 </UL>
-<BR>[Calls]<UL><LI><a href="#[75]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_cfrcmple
+<BR>[Calls]<UL><LI><a href="#[76]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_cfrcmple
 <LI><a href="#[73]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fmul
-<LI><a href="#[76]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_cfcmple
+<LI><a href="#[75]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_cfcmple
 <LI><a href="#[72]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_i2f
 <LI><a href="#[77]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2iz
 <LI><a href="#[74]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fadd
@@ -1266,7 +1266,7 @@ Local Symbols
 <BR>[Called By]<UL><LI><a href="#[7b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;RunPIDAction
 </UL>
 
-<P><STRONG><a name="[7b]"></a>RunPIDAction</STRONG> (Thumb, 284 bytes, Stack size 104 bytes, control_system.o(i.RunPIDAction))
+<P><STRONG><a name="[7b]"></a>RunPIDAction</STRONG> (Thumb, 322 bytes, Stack size 104 bytes, control_system.o(i.RunPIDAction))
 <BR><BR>[Stack]<UL><LI>Max Depth = 304 + Unknown Stack Size
 <LI>Call Chain = RunPIDAction &rArr; ReportWheelSpeed &rArr; __2printf &rArr; _printf_char_file &rArr; _printf_char_common &rArr; __printf
 </UL>
@@ -1306,7 +1306,7 @@ Local Symbols
 <BR>[Called By]<UL><LI><a href="#[7c]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;Control_SetWheels
 </UL>
 
-<P><STRONG><a name="[ad]"></a>SpeedPI_Reset</STRONG> (Thumb, 26 bytes, Stack size 16 bytes, control_system.o(i.SpeedPI_Reset))
+<P><STRONG><a name="[ad]"></a>SpeedPI_Reset</STRONG> (Thumb, 24 bytes, Stack size 16 bytes, control_system.o(i.SpeedPI_Reset))
 <BR><BR>[Stack]<UL><LI>Max Depth = 16<LI>Call Chain = SpeedPI_Reset
 </UL>
 <BR>[Calls]<UL><LI><a href="#[72]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_i2f
@@ -1317,9 +1317,9 @@ Local Symbols
 <P><STRONG><a name="[af]"></a>SpeedPI_Update</STRONG> (Thumb, 156 bytes, Stack size 40 bytes, control_system.o(i.SpeedPI_Update))
 <BR><BR>[Stack]<UL><LI>Max Depth = 56<LI>Call Chain = SpeedPI_Update &rArr; __aeabi_fmul
 </UL>
-<BR>[Calls]<UL><LI><a href="#[75]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_cfrcmple
+<BR>[Calls]<UL><LI><a href="#[76]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_cfrcmple
 <LI><a href="#[73]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fmul
-<LI><a href="#[76]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_cfcmple
+<LI><a href="#[75]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_cfcmple
 <LI><a href="#[72]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_i2f
 <LI><a href="#[77]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_f2iz
 <LI><a href="#[b1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_fsub
