@@ -1,5 +1,5 @@
 Dependencies for Project 'Template', Target 'Template': (DO NOT MODIFY !)
-F (.\main.c)(0x6A8FAA2D)(-c --cpu Cortex-M3 -g -O0 --apcs=interwork --split_sections -I ..\USER -I ..\CORE -I ..\STM32F10x_FWLib\inc -I ..\SYSTEM\delay -I ..\SYSTEM\sys -I ..\SYSTEM\usart -I ..\QST_HARDWARE\colorful_led -I ..\QST_HARDWARE\SYSTEM_CONTROL -I ..\QST_HARDWARE\encoder-I.\RTE\_Template-IC:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="525" -DSTM32F10X_MD -DSTM32F10X_MD -DUSE_STDPERIPH_DRIVER-o ..\obj\main.o --omf_browse ..\obj\main.crf --depend ..\obj\main.d)
+F (.\main.c)(0x6A8FAEA4)(-c --cpu Cortex-M3 -g -O0 --apcs=interwork --split_sections -I ..\USER -I ..\CORE -I ..\STM32F10x_FWLib\inc -I ..\SYSTEM\delay -I ..\SYSTEM\sys -I ..\SYSTEM\usart -I ..\QST_HARDWARE\colorful_led -I ..\QST_HARDWARE\SYSTEM_CONTROL -I ..\QST_HARDWARE\encoder-I.\RTE\_Template-IC:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="525" -DSTM32F10X_MD -DSTM32F10X_MD -DUSE_STDPERIPH_DRIVER-o ..\obj\main.o --omf_browse ..\obj\main.crf --depend ..\obj\main.d)
 I (C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include\stm32f10x.h)(0x528979E6)
 I (..\CORE\core_cm3.h)(0x6A8FA3D7)
 I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)
@@ -36,7 +36,7 @@ I (..\QST_HARDWARE\colorful_led\colorful_led.h)(0x6A8FA3D7)
 I (C:\Keil_v5\ARM\ARMCC\include\string.h)(0x599ECD2C)
 I (C:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x599ECD2C)
 I (C:\Keil_v5\ARM\ARMCC\include\math.h)(0x599ECD2E)
-I (..\QST_HARDWARE\SYSTEM_CONTROL\control_system.h)(0x6A8FABBB)
+I (..\QST_HARDWARE\SYSTEM_CONTROL\control_system.h)(0x6A8FB17D)
 F (.\stm32f10x_it.c)(0x6A8FA3D7)(-c --cpu Cortex-M3 -g -O0 --apcs=interwork --split_sections -I ..\USER -I ..\CORE -I ..\STM32F10x_FWLib\inc -I ..\SYSTEM\delay -I ..\SYSTEM\sys -I ..\SYSTEM\usart -I ..\QST_HARDWARE\colorful_led -I ..\QST_HARDWARE\SYSTEM_CONTROL -I ..\QST_HARDWARE\encoder-I.\RTE\_Template-IC:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="525" -DSTM32F10X_MD -DSTM32F10X_MD -DUSE_STDPERIPH_DRIVER-o ..\obj\stm32f10x_it.o --omf_browse ..\obj\stm32f10x_it.crf --depend ..\obj\stm32f10x_it.d)
 I (stm32f10x_it.h)(0x6A8FA3D7)
 I (C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include\stm32f10x.h)(0x528979E6)
@@ -914,8 +914,8 @@ I (..\SYSTEM\delay\delay.h)(0x6A8FA3D7)
 I (C:\Keil_v5\ARM\ARMCC\include\string.h)(0x599ECD2C)
 I (C:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x599ECD2C)
 I (C:\Keil_v5\ARM\ARMCC\include\math.h)(0x599ECD2E)
-F (..\QST_HARDWARE\SYSTEM_CONTROL\control_system.c)(0x6A8FAA80)(-c --cpu Cortex-M3 -g -O0 --apcs=interwork --split_sections -I ..\USER -I ..\CORE -I ..\STM32F10x_FWLib\inc -I ..\SYSTEM\delay -I ..\SYSTEM\sys -I ..\SYSTEM\usart -I ..\QST_HARDWARE\colorful_led -I ..\QST_HARDWARE\SYSTEM_CONTROL -I ..\QST_HARDWARE\encoder-I.\RTE\_Template-IC:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="525" -DSTM32F10X_MD -DSTM32F10X_MD -DUSE_STDPERIPH_DRIVER-o ..\obj\control_system.o --omf_browse ..\obj\control_system.crf --depend ..\obj\control_system.d)
-I (..\QST_HARDWARE\SYSTEM_CONTROL\control_system.h)(0x6A8FABBB)
+F (..\QST_HARDWARE\SYSTEM_CONTROL\control_system.c)(0x6A8FB17D)(-c --cpu Cortex-M3 -g -O0 --apcs=interwork --split_sections -I ..\USER -I ..\CORE -I ..\STM32F10x_FWLib\inc -I ..\SYSTEM\delay -I ..\SYSTEM\sys -I ..\SYSTEM\usart -I ..\QST_HARDWARE\colorful_led -I ..\QST_HARDWARE\SYSTEM_CONTROL -I ..\QST_HARDWARE\encoder-I.\RTE\_Template-IC:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include-IC:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="525" -DSTM32F10X_MD -DSTM32F10X_MD -DUSE_STDPERIPH_DRIVER-o ..\obj\control_system.o --omf_browse ..\obj\control_system.crf --depend ..\obj\control_system.d)
+I (..\QST_HARDWARE\SYSTEM_CONTROL\control_system.h)(0x6A8FB17D)
 I (C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include\stm32f10x.h)(0x528979E6)
 I (..\CORE\core_cm3.h)(0x6A8FA3D7)
 I (C:\Keil_v5\ARM\ARMCC\include\stdint.h)(0x599ECD2E)

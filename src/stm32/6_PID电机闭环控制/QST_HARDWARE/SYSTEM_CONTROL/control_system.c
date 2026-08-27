@@ -219,22 +219,6 @@ static s16 NormalizeRightEncoder(s16 raw_count)
     return (s16)(raw_count * RIGHT_ENCODER_FORWARD_SIGN);
 }
 
-static u8 WheelReached(s8 direction, u32 progress, u32 target_counts)
-{
-    if (direction == 0)
-        return 1;
-    return (u8)(progress >= target_counts);
-}
-
-static u8 ActionReached(s8 left_direction, s8 right_direction,
-                        const ControlFeedback *feedback, u32 target_counts)
-{
-    return (u8)(WheelReached(left_direction, feedback->left_progress,
-                             target_counts)
-             && WheelReached(right_direction, feedback->right_progress,
-                             target_counts));
-}
-
 /**************************************************************************
 函数功能：读取并归一化左右编码器，同时累计车轮实际前进脉冲
 入口参数：左右轮动作方向、反馈结构体
@@ -259,61 +243,20 @@ static void ReadControlFeedback(s8 left_direction, s8 right_direction,
 }
 
 /**************************************************************************
-函数功能：根据起步阶段和转向剩余脉冲生成平滑的基础目标速度
-入口参数：循环次数、巡航速度、是否按脉冲终止、当前反馈、目标脉冲
-返回值  ：本周期目标脉冲数
+函数功能：根据起步阶段生成平滑的基础目标速度
+入口参数：已经执行的控制周期数
+返回值  ：本周期目标编码器脉冲数
 **************************************************************************/
-static s16 SelectBaseTarget(u16 control_step, s16 cruise_counts,
-                            u8 use_encoder_target,
-                            s8 left_direction, s8 right_direction,
-                            const ControlFeedback *feedback,
-                            u32 target_counts)
+static s16 SelectBaseTarget(u16 control_step)
 {
-    s16 target;
-    s16 ramp_target;
-    u32 remaining;
-    u32 wheel_remaining;
-
-    target = cruise_counts;
-
     if (control_step < CAR_START_RAMP_STEPS)
     {
-        ramp_target = CAR_MIN_TARGET_COUNTS
-                    + (s16)(((s32)(cruise_counts - CAR_MIN_TARGET_COUNTS)
-                              * (control_step + 1)) / CAR_START_RAMP_STEPS);
-        if (ramp_target < target)
-            target = ramp_target;
+        return CAR_MIN_TARGET_COUNTS
+             + (s16)(((s32)(CAR_CRUISE_COUNTS - CAR_MIN_TARGET_COUNTS)
+                       * (control_step + 1)) / CAR_START_RAMP_STEPS);
     }
 
-    if (!use_encoder_target)
-        return target;
-
-    remaining = target_counts;
-    if (left_direction != 0)
-    {
-        wheel_remaining = feedback->left_progress >= target_counts
-                        ? 0 : target_counts - feedback->left_progress;
-        if (wheel_remaining < remaining)
-            remaining = wheel_remaining;
-    }
-    if (right_direction != 0)
-    {
-        wheel_remaining = feedback->right_progress >= target_counts
-                        ? 0 : target_counts - feedback->right_progress;
-        if (wheel_remaining < remaining)
-            remaining = wheel_remaining;
-    }
-
-    if (remaining < CAR_TURN_DECEL_COUNTS)
-    {
-        ramp_target = CAR_MIN_TARGET_COUNTS
-                    + (s16)(((u32)(cruise_counts - CAR_MIN_TARGET_COUNTS)
-                              * remaining) / CAR_TURN_DECEL_COUNTS);
-        if (ramp_target < target)
-            target = ramp_target;
-    }
-
-    return target;
+    return CAR_CRUISE_COUNTS;
 }
 
 /**************************************************************************
@@ -350,34 +293,76 @@ static s16 CalculateSyncCorrection(s8 left_direction, s8 right_direction,
 }
 
 /**************************************************************************
-函数功能：统一执行定时动作或编码器定距动作
-入口参数：左右方向、运行时间、目标脉冲、终止方式和灯效函数
-返回值  ：1 表示正常结束，0 表示编码器目标未在超时前到达
+函数功能：把一个控制周期内的编码器计数换算为每分钟转数
+入口参数：沿当前运动方向的编码器计数
+返回值  ：车轮转速 RPM；负数表示编码器方向标定异常
 **************************************************************************/
-static u8 RunPIDAction(s8 left_direction, s8 right_direction,
-                       u16 run_time_ms, u32 target_counts,
-                       u8 use_encoder_target, ControlLedStep led_effect)
+static int EncoderCountsToRpm(s16 motion_counts)
+{
+    s32 numerator;
+    s32 denominator;
+
+    numerator = (s32)motion_counts * 60000L;
+    denominator = CAR_ENCODER_COUNTS_PER_REV
+                * (s32)CAR_CONTROL_PERIOD_MS;
+    return (int)(numerator / denominator);
+}
+
+/**************************************************************************
+函数功能：向串口助手输出左右轮转速、目标值、编码器计数和实际 PWM
+入口参数：运动方向、反馈值、左右目标值及左右 PWM
+返回值  ：无
+输出格式：SPEED,F,L=60,R=58,LT=140,RT=140,LC=140,RC=136,LP=5000,RP=4870
+**************************************************************************/
+static void ReportWheelSpeed(s8 direction,
+                             const ControlFeedback *feedback,
+                             s16 left_target, s16 right_target,
+                             s16 left_pwm, s16 right_pwm)
+{
+    s16 left_motion_count;
+    s16 right_motion_count;
+    int left_rpm;
+    int right_rpm;
+
+    left_motion_count = (s16)(feedback->left_speed * direction);
+    right_motion_count = (s16)(feedback->right_speed * direction);
+    left_rpm = EncoderCountsToRpm(left_motion_count);
+    right_rpm = EncoderCountsToRpm(right_motion_count);
+
+    printf("SPEED,%c,L=%d,R=%d,LT=%d,RT=%d,LC=%d,RC=%d,LP=%d,RP=%d\r\n",
+           direction > 0 ? 'F' : 'B',
+           left_rpm, right_rpm,
+           left_target * direction, right_target * direction,
+           left_motion_count, right_motion_count,
+           left_pwm, right_pwm);
+}
+
+/**************************************************************************
+函数功能：执行一次定时双轮 PID 闭环动作
+入口参数：左右轮方向、运行时间和灯效函数
+返回值  ：无；动作结束后自动停车、熄灯并短暂停顿
+**************************************************************************/
+static void RunPIDAction(s8 left_direction, s8 right_direction,
+                         u16 run_time_ms, ControlLedStep led_effect)
 {
     SpeedPI left_controller;
     SpeedPI right_controller;
     ControlFeedback feedback;
     u16 elapsed;
     u16 control_step;
-    s16 cruise_counts;
     s16 base_target;
     s16 correction;
     s16 left_target;
     s16 right_target;
     s16 left_pwm;
     s16 right_pwm;
-    u8 reached;
 
-    if (left_direction < -1 || left_direction > 1
-        || right_direction < -1 || right_direction > 1
-        || (left_direction == 0 && right_direction == 0))
+    /* 当前服务只允许双轮同时前进或同时后退。 */
+    if (!((left_direction == 1 && right_direction == 1)
+          || (left_direction == -1 && right_direction == -1)))
     {
         Control_Stop();
-        return 0;
+        return;
     }
 
     feedback.left_speed = 0;
@@ -386,8 +371,6 @@ static u8 RunPIDAction(s8 left_direction, s8 right_direction,
     feedback.right_progress = 0;
     elapsed = 0;
     control_step = 0;
-    reached = 0;
-    cruise_counts = use_encoder_target ? CAR_TURN_COUNTS : CAR_CRUISE_COUNTS;
 
     SpeedPI_Reset(&left_controller, left_direction);
     SpeedPI_Reset(&right_controller, right_direction);
@@ -396,50 +379,30 @@ static u8 RunPIDAction(s8 left_direction, s8 right_direction,
     while (elapsed < run_time_ms)
     {
         ReadControlFeedback(left_direction, right_direction, &feedback);
-
-        if (use_encoder_target
-            && ActionReached(left_direction, right_direction,
-                             &feedback, target_counts))
-        {
-            reached = 1;
-            break;
-        }
-
-        base_target = SelectBaseTarget(control_step, cruise_counts,
-                                       use_encoder_target,
-                                       left_direction, right_direction,
-                                       &feedback, target_counts);
+        base_target = SelectBaseTarget(control_step);
         correction = CalculateSyncCorrection(left_direction, right_direction,
                                               &feedback);
 
         left_target = (s16)(base_target - correction);
         right_target = (s16)(base_target + correction);
         left_target = ClampS16(left_target, CAR_MIN_TARGET_COUNTS,
-                               cruise_counts + CAR_SYNC_LIMIT_COUNTS);
+                               CAR_CRUISE_COUNTS + CAR_SYNC_LIMIT_COUNTS);
         right_target = ClampS16(right_target, CAR_MIN_TARGET_COUNTS,
-                                cruise_counts + CAR_SYNC_LIMIT_COUNTS);
+                                CAR_CRUISE_COUNTS + CAR_SYNC_LIMIT_COUNTS);
 
-        if (left_direction == 0
-            || (use_encoder_target
-                && WheelReached(left_direction, feedback.left_progress,
-                                target_counts)))
-            left_target = 0;
-        else
-            left_target = (s16)(left_target * left_direction);
-
-        if (right_direction == 0
-            || (use_encoder_target
-                && WheelReached(right_direction, feedback.right_progress,
-                                target_counts)))
-            right_target = 0;
-        else
-            right_target = (s16)(right_target * right_direction);
+        left_target = (s16)(left_target * left_direction);
+        right_target = (s16)(right_target * right_direction);
 
         left_pwm = SpeedPI_Update(&left_controller, left_target,
                                   feedback.left_speed);
         right_pwm = SpeedPI_Update(&right_controller, right_target,
                                    feedback.right_speed);
         Control_SetWheels(left_pwm, right_pwm);
+
+        if ((control_step + 1) % CAR_SPEED_REPORT_STEPS == 0)
+            ReportWheelSpeed(left_direction, &feedback,
+                             left_target, right_target,
+                             left_pwm, right_pwm);
 
         if (led_effect != 0)
             led_effect();
@@ -451,31 +414,11 @@ static u8 RunPIDAction(s8 left_direction, s8 right_direction,
 
     Control_Stop();
     LED_All_Off_Step();
-
-    if (use_encoder_target && !reached)
-    {
-        printf("PID TURN TIMEOUT L=%lu R=%lu\r\n",
-               feedback.left_progress, feedback.right_progress);
-    }
-
     delay_ms(CAR_STOP_PAUSE_MS);
-    return use_encoder_target ? reached : 1;
 }
 
 void Control_RunTimedPID(s8 left_direction, s8 right_direction,
                          u16 run_time_ms, ControlLedStep led_effect)
 {
-    RunPIDAction(left_direction, right_direction, run_time_ms,
-                 0, 0, led_effect);
-}
-
-u8 Control_RunEncoderPID(s8 left_direction, s8 right_direction,
-                         u32 target_counts, u16 timeout_ms,
-                         ControlLedStep led_effect)
-{
-    if (target_counts == 0 || timeout_ms == 0)
-        return 0;
-
-    return RunPIDAction(left_direction, right_direction, timeout_ms,
-                        target_counts, 1, led_effect);
+    RunPIDAction(left_direction, right_direction, run_time_ms, led_effect);
 }
