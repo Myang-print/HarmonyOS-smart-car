@@ -43,6 +43,18 @@
 #define CAR_REVERSE_SYNC_POSITION_KP  (0.010f)
 #define CAR_REVERSE_SYNC_LIMIT_COUNTS ((s16)35)
 
+/* 前进直线外环：把速度差和累计路程差直接换算为差动 PWM。 */
+#define CAR_FORWARD_PWM_SYNC_SPEED_KP    (10.0f)
+#define CAR_FORWARD_PWM_SYNC_POSITION_KP (0.10f)
+#define CAR_FORWARD_PWM_SYNC_LIMIT       ((s16)800)
+#define CAR_FORWARD_SPEED_FILTER_ALPHA   (0.25f)
+
+/* 每个前进周期结束后，缓慢学习下一周期使用的前馈 PWM。 */
+#define CAR_FEEDFORWARD_LEARN_DIVISOR     ((s16)4)
+#define CAR_FEEDFORWARD_LEARN_START_STEP  ((u16)20)
+#define CAR_FEEDFORWARD_MIN               ((s16)1800)
+#define CAR_FEEDFORWARD_MAX               ((s16)6000)
+
 typedef void (*ControlLedStep)(void);
 
 void Control_System_Init(void);

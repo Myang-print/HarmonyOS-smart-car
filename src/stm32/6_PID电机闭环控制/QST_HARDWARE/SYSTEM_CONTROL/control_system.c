@@ -29,6 +29,10 @@ typedef struct
     u32 right_progress;
 } ControlFeedback;
 
+/* 前进前馈只在运行期间自学习，复位后从头文件中的安全初值重新开始。 */
+static s16 forward_left_feedforward = CAR_FORWARD_LEFT_FEEDFORWARD;
+static s16 forward_right_feedforward = CAR_FORWARD_RIGHT_FEEDFORWARD;
+
 static s16 ClampS16(s16 value, s16 minimum, s16 maximum)
 {
     if (value < minimum)
@@ -308,6 +312,68 @@ static s16 CalculateSyncCorrection(s8 left_direction, s8 right_direction,
     return (s16)correction;
 }
 
+static s16 AbsolutePwm(s16 pwm)
+{
+    return pwm < 0 ? (s16)(-pwm) : pwm;
+}
+
+/**************************************************************************
+函数功能：前进时把左右速度差和累计路程差直接转换为差动 PWM
+入口参数：反馈值、速度误差滤波状态、左右轮 PID 输出
+返回值  ：本周期差动修正量；正值表示降低左轮并提高右轮
+说明    ：该外环直接约束运动方向，不改变已经稳定的后退控制
+**************************************************************************/
+static s16 ApplyForwardStraightCorrection(const ControlFeedback *feedback,
+                                          float *filtered_speed_error,
+                                          s16 *left_pwm, s16 *right_pwm)
+{
+    s16 speed_error;
+    s32 position_error;
+    float correction;
+    s16 correction_pwm;
+    s16 left_magnitude;
+    s16 right_magnitude;
+
+    speed_error = (s16)(feedback->left_speed - feedback->right_speed);
+    position_error = (s32)feedback->left_progress
+                   - (s32)feedback->right_progress;
+
+    *filtered_speed_error += CAR_FORWARD_SPEED_FILTER_ALPHA
+                           * ((float)speed_error - *filtered_speed_error);
+    correction = CAR_FORWARD_PWM_SYNC_SPEED_KP * *filtered_speed_error
+               + CAR_FORWARD_PWM_SYNC_POSITION_KP * (float)position_error;
+
+    if (correction > (float)CAR_FORWARD_PWM_SYNC_LIMIT)
+        correction = (float)CAR_FORWARD_PWM_SYNC_LIMIT;
+    else if (correction < -(float)CAR_FORWARD_PWM_SYNC_LIMIT)
+        correction = -(float)CAR_FORWARD_PWM_SYNC_LIMIT;
+
+    correction_pwm = (s16)correction;
+    left_magnitude = ClampS16((s16)(AbsolutePwm(*left_pwm) - correction_pwm),
+                              0, (s16)CAR_PWM_PERIOD);
+    right_magnitude = ClampS16((s16)(AbsolutePwm(*right_pwm) + correction_pwm),
+                               0, (s16)CAR_PWM_PERIOD);
+    *left_pwm = left_magnitude;
+    *right_pwm = right_magnitude;
+
+    return correction_pwm;
+}
+
+/**************************************************************************
+函数功能：用本周期稳定阶段的平均 PWM 更新下一周期前馈值
+入口参数：旧前馈和本周期平均实际 PWM
+返回值  ：限幅且低通后的新前馈值
+**************************************************************************/
+static s16 LearnForwardFeedforward(s16 old_feedforward, s16 average_pwm)
+{
+    s16 learned;
+
+    learned = (s16)(((s32)old_feedforward
+                     * (CAR_FEEDFORWARD_LEARN_DIVISOR - 1)
+                     + average_pwm) / CAR_FEEDFORWARD_LEARN_DIVISOR);
+    return ClampS16(learned, CAR_FEEDFORWARD_MIN, CAR_FEEDFORWARD_MAX);
+}
+
 /**************************************************************************
 函数功能：把一个控制周期内的编码器计数换算为每分钟转数
 入口参数：沿当前运动方向的编码器计数
@@ -326,13 +392,14 @@ static int EncoderCountsToRpm(s16 motion_counts)
 
 /**************************************************************************
 函数功能：向串口助手输出左右轮转速、目标值、编码器计数和实际 PWM
-入口参数：运动方向、反馈值、左右目标值及左右 PWM
+入口参数：运动方向、反馈值、左右目标值、差动修正量及左右 PWM
 返回值  ：无
-输出格式：SPEED,F,L=60,R=58,LT=140,RT=140,LC=140,RC=136,LP=5000,RP=4870
+输出格式：SPEED,F,L=60,R=58,LT=140,RT=140,LC=140,RC=136,SC=-50,LP=5050,RP=4820
 **************************************************************************/
 static void ReportWheelSpeed(s8 direction,
                              const ControlFeedback *feedback,
                              s16 left_target, s16 right_target,
+                             s16 straight_correction,
                              s16 left_pwm, s16 right_pwm)
 {
     s16 left_motion_count;
@@ -345,11 +412,12 @@ static void ReportWheelSpeed(s8 direction,
     left_rpm = EncoderCountsToRpm(left_motion_count);
     right_rpm = EncoderCountsToRpm(right_motion_count);
 
-    printf("SPEED,%c,L=%d,R=%d,LT=%d,RT=%d,LC=%d,RC=%d,LP=%d,RP=%d\r\n",
+    printf("SPEED,%c,L=%d,R=%d,LT=%d,RT=%d,LC=%d,RC=%d,SC=%d,LP=%d,RP=%d\r\n",
            direction > 0 ? 'F' : 'B',
            left_rpm, right_rpm,
            left_target * direction, right_target * direction,
            left_motion_count, right_motion_count,
+           straight_correction,
            left_pwm, right_pwm);
 }
 
@@ -372,6 +440,13 @@ static void RunPIDAction(s8 left_direction, s8 right_direction,
     s16 right_target;
     s16 left_pwm;
     s16 right_pwm;
+    s16 straight_correction;
+    float filtered_speed_error;
+    u32 left_pwm_sum;
+    u32 right_pwm_sum;
+    u16 learning_samples;
+    s16 average_left_pwm;
+    s16 average_right_pwm;
 
     /* 当前服务只允许双轮同时前进或同时后退。 */
     if (!((left_direction == 1 && right_direction == 1)
@@ -387,13 +462,18 @@ static void RunPIDAction(s8 left_direction, s8 right_direction,
     feedback.right_progress = 0;
     elapsed = 0;
     control_step = 0;
+    straight_correction = 0;
+    filtered_speed_error = 0.0f;
+    left_pwm_sum = 0;
+    right_pwm_sum = 0;
+    learning_samples = 0;
 
     if (left_direction > 0)
     {
         SpeedPI_Reset(&left_controller, left_direction,
-                      CAR_FORWARD_LEFT_FEEDFORWARD);
+                      forward_left_feedforward);
         SpeedPI_Reset(&right_controller, right_direction,
-                      CAR_FORWARD_RIGHT_FEEDFORWARD);
+                      forward_right_feedforward);
     }
     else
     {
@@ -427,11 +507,31 @@ static void RunPIDAction(s8 left_direction, s8 right_direction,
                                   feedback.left_speed);
         right_pwm = SpeedPI_Update(&right_controller, right_target,
                                    feedback.right_speed);
+
+        straight_correction = 0;
+        if (left_direction > 0)
+        {
+            straight_correction = ApplyForwardStraightCorrection(
+                &feedback, &filtered_speed_error, &left_pwm, &right_pwm);
+
+            if (control_step >= CAR_FEEDFORWARD_LEARN_START_STEP
+                && feedback.left_speed > CAR_MIN_TARGET_COUNTS
+                && feedback.right_speed > CAR_MIN_TARGET_COUNTS
+                && feedback.left_speed < (CAR_CRUISE_COUNTS * 2)
+                && feedback.right_speed < (CAR_CRUISE_COUNTS * 2))
+            {
+                left_pwm_sum += (u32)AbsolutePwm(left_pwm);
+                right_pwm_sum += (u32)AbsolutePwm(right_pwm);
+                learning_samples++;
+            }
+        }
+
         Control_SetWheels(left_pwm, right_pwm);
 
         if ((control_step + 1) % CAR_SPEED_REPORT_STEPS == 0)
             ReportWheelSpeed(left_direction, &feedback,
                              left_target, right_target,
+                             straight_correction,
                              left_pwm, right_pwm);
 
         if (led_effect != 0)
@@ -443,6 +543,19 @@ static void RunPIDAction(s8 left_direction, s8 right_direction,
     }
 
     Control_Stop();
+
+    if (left_direction > 0 && learning_samples > 0)
+    {
+        average_left_pwm = (s16)(left_pwm_sum / learning_samples);
+        average_right_pwm = (s16)(right_pwm_sum / learning_samples);
+        forward_left_feedforward = LearnForwardFeedforward(
+            forward_left_feedforward, average_left_pwm);
+        forward_right_feedforward = LearnForwardFeedforward(
+            forward_right_feedforward, average_right_pwm);
+        printf("LEARN,F,LF=%d,RF=%d\r\n",
+               forward_left_feedforward, forward_right_feedforward);
+    }
+
     LED_All_Off_Step();
     delay_ms(CAR_STOP_PAUSE_MS);
 }
