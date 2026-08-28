@@ -11,17 +11,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import("//build/lite/config/component/lite_component.gni")
+static_library("Sht20") {
+    sources = [
+        "Sht20.c",
+        "src/hal_bsp_sht20.c"
+    ]
 
-lite_component("app") {
-    features = [
-        #"1.0_Hello_World:hello_world",
-        #"2.0_TCRT_Timer:TCRT",
-        #"3.0_SG90_Mutex:SG90",
-        #"4.0_Hcsr04_Tick:Hcsr04",
-        #"5.0_Uart_BLE:Uart",
-        #"6.0_Sum_Experiment_First:Sum_Experiment_First",
-        #"7.0_I2c_Ssd1306:I2c_Ssd1306",
-        "8.0_Sht20:Sht20",
+    include_dirs = [
+        "//utils/native/lite/include",
+        "//kernel/liteos_m/components/cmsis/2.0",
+        "//base/iot_hardware/interfaces/kits/wifiiot_lite",
+        "include"
     ]
 }
