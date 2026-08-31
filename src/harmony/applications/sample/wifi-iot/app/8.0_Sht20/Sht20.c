@@ -1,125 +1,174 @@
 /*
  * Copyright (c) 2020 Huawei Device Co., Ltd.
  * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
  */
 
+#include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
-#include <unistd.h>
-#include "ohos_init.h"
+#include <string.h>
+
 #include "cmsis_os2.h"
 #include "hal_bsp_sht20.h"
+#include "hal_bsp_ssd1306.h"
+#include "ohos_init.h"
+#include "wifiiot_errno.h"
 
-osSemaphoreId_t sem1;
+#define SAMPLE_PERIOD_MS 2000U
+#define SAMPLE_QUEUE_DEPTH 4U
+#define TASK_STACK_SIZE (4U * 1024U)
 
+typedef struct {
+    uint32_t sequence;
+    uint32_t status;
+    float temperature;
+    float humidity;
+} EnvironmentSample;
 
-void thread1(void)
+static osMessageQueueId_t g_oledQueue;
+static osMessageQueueId_t g_serialQueue;
+static osMutexId_t g_i2cMutex;
+static bool g_oledReady;
+
+static void DelayMilliseconds(uint32_t milliseconds)
 {
-    while (1)
-    {
-        //1秒中释放两次sem1信号量，使得Thread_Semaphore2和Thread_Semaphore3能同步执行
-        osSemaphoreRelease(sem1);
+    uint32_t ticks = (milliseconds * osKernelGetTickFreq() + 999U) / 1000U;
+    osDelay((ticks == 0U) ? 1U : ticks);
+}
 
-        //此处若只释放一次信号量，则Thread_Semaphore2和Thread_Semaphore3会交替运行。
-        osSemaphoreRelease(sem1);
+static void QueueLatest(osMessageQueueId_t queue, const EnvironmentSample *sample)
+{
+    EnvironmentSample discarded;
 
-        printf("\n");
-        printf("Thread1释放信号量!\n");
+    if (osMessageQueuePut(queue, sample, 0U, 0U) == osOK) {
+        return;
+    }
 
-        osDelay(300); //延时3秒
+    /* Consumer lag must not block sampling: discard one stale value and retry. */
+    (void)osMessageQueueGet(queue, &discarded, NULL, 0U);
+    (void)osMessageQueuePut(queue, sample, 0U, 0U);
+}
+
+static void SensorTask(void *argument)
+{
+    EnvironmentSample sample = {0};
+    (void)argument;
+
+    while (1) {
+        sample.sequence++;
+        sample.temperature = 0.0F;
+        sample.humidity = 0.0F;
+
+        (void)osMutexAcquire(g_i2cMutex, osWaitForever);
+        sample.status = SHT20_ReadData(&sample.temperature, &sample.humidity);
+        (void)osMutexRelease(g_i2cMutex);
+
+        QueueLatest(g_oledQueue, &sample);
+        QueueLatest(g_serialQueue, &sample);
+        DelayMilliseconds(SAMPLE_PERIOD_MS);
     }
 }
 
-
-void thread2(void)
+static void OledTask(void *argument)
 {
-    float temperature = 0, humidity = 0;
+    EnvironmentSample sample;
+    uint8_t line[20];
+    (void)argument;
 
-    printf("i2c_sht20_demo()");
+    while (1) {
+        if (osMessageQueueGet(g_oledQueue, &sample, NULL, osWaitForever) != osOK) {
+            continue;
+        }
+        if (!g_oledReady) {
+            continue;
+        }
 
-    SHT20_Init();  // SHT20初始化
-
-    while (1)
-    {
-        //等待sem1信号量
-        osSemaphoreAcquire(sem1, osWaitForever);
-
-        SHT20_ReadData(&temperature, &humidity);
-
-        printf("temperature = %.2f     humidity = %.2f\r\n",
-               temperature, humidity);
-
-        printf("Thread2 得到信号量!\n");
-
-        osDelay(1); //延时10ms
+        (void)osMutexAcquire(g_i2cMutex, osWaitForever);
+        if (sample.status == WIFI_IOT_SUCCESS) {
+            (void)snprintf((char *)line, sizeof(line), "TEMP:%7.2f C", sample.temperature);
+            SSD1306_ShowStr(0, 1, line, 16);
+            (void)snprintf((char *)line, sizeof(line), "HUM :%7.2f %%", sample.humidity);
+            SSD1306_ShowStr(0, 2, line, 16);
+        } else {
+            SSD1306_ShowStr(0, 1, (uint8_t *)"SENSOR ERROR    ", 16);
+            (void)snprintf((char *)line, sizeof(line), "CODE:%08X", sample.status);
+            SSD1306_ShowStr(0, 2, line, 16);
+        }
+        (void)snprintf((char *)line, sizeof(line), "SAMPLE:%06u", sample.sequence);
+        SSD1306_ShowStr(0, 3, line, 16);
+        (void)osMutexRelease(g_i2cMutex);
     }
 }
 
-
-void thread3(void)
+static void SerialUploadTask(void *argument)
 {
-    while (1)
-    {
-        //等待sem1信号量
-        osSemaphoreAcquire(sem1, osWaitForever);
+    EnvironmentSample sample;
+    (void)argument;
 
-        printf("Thread3 得到信号量!\n");
+    while (1) {
+        if (osMessageQueueGet(g_serialQueue, &sample, NULL, osWaitForever) != osOK) {
+            continue;
+        }
 
-        osDelay(1); //延时10ms
+        if (sample.status == WIFI_IOT_SUCCESS) {
+            /* printf is routed to the Hi3861 system debug UART. */
+            printf("[SHT20_UPLOAD] seq=%u,temperature=%.2f,humidity=%.2f\r\n",
+                   sample.sequence, sample.temperature, sample.humidity);
+        } else {
+            printf("[SHT20_UPLOAD] seq=%u,status=0x%08X\r\n",
+                   sample.sequence, sample.status);
+        }
     }
 }
 
-
-static void i2c_sht20_demo(void)
+static bool CreateTask(const char *name, osThreadFunc_t entry)
 {
-    osThreadAttr_t attr;
+    osThreadAttr_t attr = {0};
+    attr.name = name;
+    attr.stack_size = TASK_STACK_SIZE;
+    attr.priority = osPriorityNormal;
 
-    attr.attr_bits = 0U;
-    attr.cb_mem = NULL;
-    attr.cb_size = 0U;
-    attr.stack_mem = NULL;
-    attr.stack_size = 1024 * 4;
+    if (osThreadNew(entry, NULL, &attr) == NULL) {
+        printf("Failed to create %s\r\n", name);
+        return false;
+    }
+    return true;
+}
 
-    attr.name = "thread1";
-    attr.priority = 25;
+static void Sht20OledDemo(void)
+{
+    uint32_t sht20Status;
+    uint32_t oledStatus;
+    bool tasksCreated = true;
 
-    if (osThreadNew((osThreadFunc_t)thread1, NULL, &attr) == NULL)
-    {
-        printf("Falied to create thread1!\n");
+    g_i2cMutex = osMutexNew(NULL);
+    g_oledQueue = osMessageQueueNew(SAMPLE_QUEUE_DEPTH, sizeof(EnvironmentSample), NULL);
+    g_serialQueue = osMessageQueueNew(SAMPLE_QUEUE_DEPTH, sizeof(EnvironmentSample), NULL);
+    if ((g_i2cMutex == NULL) || (g_oledQueue == NULL) || (g_serialQueue == NULL)) {
+        printf("SHT20 demo IPC initialization failed\r\n");
+        return;
     }
 
-    attr.name = "thread2";
-    attr.priority = 25;
+    /* SHT20_Init configures the shared I2C0 bus before either device is used. */
+    sht20Status = SHT20_Init();
+    oledStatus = SSD1306_Init();
+    g_oledReady = (oledStatus == WIFI_IOT_SUCCESS);
 
-    if (osThreadNew((osThreadFunc_t)thread2, NULL, &attr) == NULL)
-    {
-        printf("Falied to create thread2!\n");
+    if (g_oledReady) {
+        SSD1306_CLS();
+        SSD1306_ShowStr(0, 0, (uint8_t *)"SHT20 MONITOR", 16);
+        SSD1306_ShowStr(0, 1, (uint8_t *)"WAITING DATA... ", 16);
     }
 
-    attr.name = "thread3";
-    attr.priority = 25;
+    printf("SHT20/OLED init: sensor=0x%08X, oled=0x%08X\r\n",
+           sht20Status, oledStatus);
 
-    if (osThreadNew((osThreadFunc_t)thread3, NULL, &attr) == NULL)
-    {
-        printf("Falied to create thread3!\n");
-    }
-
-    sem1 = osSemaphoreNew(4, 0, NULL); //创建信号量初始值为0，最大值为4
-
-    if (sem1 == NULL)
-    {
-        printf("Falied to create Semaphore!\n");
+    tasksCreated &= CreateTask("sht20_sensor", SensorTask);
+    tasksCreated &= CreateTask("sht20_oled", OledTask);
+    tasksCreated &= CreateTask("sht20_serial", SerialUploadTask);
+    if (!tasksCreated) {
+        printf("SHT20 demo task creation incomplete\r\n");
     }
 }
 
-
-APP_FEATURE_INIT(i2c_sht20_demo);
+APP_FEATURE_INIT(Sht20OledDemo);

@@ -1,11 +1,11 @@
 #ifndef __HAL_BSP_SHT20_H__
 #define __HAL_BSP_SHT20_H__
 
-#include "cmsis_os2.h"
+#include <stdint.h>
 
 #define SHT20_I2C_ADDR (0x80)   // 器件的I2C从机地址
 #define SHT20_I2C_IDX  0             // 模块的I2C总线号
-#define SHT20_I2C_SPEED 100000       // 100KHz
+#define SHT20_I2C_SPEED 400000       // 400KHz shared by SHT20 and SSD1306
 
 /**
  * @brief SHT20 读取器件的温湿度

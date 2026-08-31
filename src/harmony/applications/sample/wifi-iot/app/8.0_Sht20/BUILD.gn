@@ -14,7 +14,8 @@
 static_library("Sht20") {
     sources = [
         "Sht20.c",
-        "src/hal_bsp_sht20.c"
+        "src/hal_bsp_sht20.c",
+        "src/hal_bsp_ssd1306.c",
     ]
 
     include_dirs = [
