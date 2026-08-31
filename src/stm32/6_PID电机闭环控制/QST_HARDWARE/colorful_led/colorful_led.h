@@ -202,4 +202,12 @@ void LED_Colorful_Ring_Step(void);
 void LED_Red_Breathing_Step(void);
 void LED_Red_Clockwise_Gradient_Step(void);
 void LED_Blue_CounterClockwise_Gradient_Step(void);
+void LED_Breath_Wave_Step(void);
+void LED_Comet_Chase_Step(void);
+void LED_Symmetric_Expand_Step(void);
+void LED_Quantum_Spark_Step(void);
+void LED_State_Forward_Step(void);
+void LED_State_Reverse_Step(void);
+void LED_State_Left_Step(void);
+void LED_State_Right_Step(void);
 

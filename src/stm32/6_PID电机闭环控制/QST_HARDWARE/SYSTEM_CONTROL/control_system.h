@@ -10,6 +10,7 @@
 /* 闭环每 50ms 更新一次；140 脉冲/周期约对应 1 转/秒。 */
 #define CAR_CONTROL_PERIOD_MS       ((u16)50)
 #define CAR_CRUISE_COUNTS           ((s16)140)
+#define CAR_TURN_COUNTS             ((s16)100)
 #define CAR_MIN_TARGET_COUNTS       ((s16)40)
 
 /* 每轮约 2800 个编码器计数；每 10 个控制周期输出一次速度。 */
@@ -20,6 +21,18 @@
 #define CAR_STRAIGHT_TIME_MS        ((u16)8000)
 #define CAR_REVERSE_TIME_MS         ((u16)8000)
 #define CAR_STOP_PAUSE_MS           ((u16)800)
+
+/* 周期路径每条直线边运行4秒，前进和后退采用相同目标轮速。 */
+#define CAR_PATH_SEGMENT_TIME_MS    ((u16)4000)
+
+/*
+ * 双轮原地转向90度的编码器初值：按轮径65mm、轮距135mm估算。
+ * 实车角度有固定误差时分别调整左右计数，不改 PI 参数。
+ */
+#define CAR_LEFT_SPIN_90_COUNTS     ((u32)1450)
+#define CAR_RIGHT_SPIN_90_COUNTS    ((u32)1450)
+#define CAR_TURN_TIMEOUT_MS         ((u16)6500)
+#define CAR_TURN_DECEL_COUNTS       ((u32)450)
 
 /* 实车标定结果：小车前进时左右编码器原始计数均为正。 */
 #define LEFT_ENCODER_FORWARD_SIGN   ((s16)1)
@@ -34,6 +47,7 @@
 #define CAR_FORWARD_RIGHT_FEEDFORWARD ((s16)3300)
 #define CAR_REVERSE_LEFT_FEEDFORWARD  ((s16)4200)
 #define CAR_REVERSE_RIGHT_FEEDFORWARD ((s16)4200)
+#define CAR_TURN_FEEDFORWARD          ((s16)4200)
 
 /* 前进优先约束瞬时速度一致，后退保持已经验证可用的同步参数。 */
 #define CAR_FORWARD_SYNC_SPEED_KP     (0.60f)
@@ -42,6 +56,9 @@
 #define CAR_REVERSE_SYNC_SPEED_KP     (0.20f)
 #define CAR_REVERSE_SYNC_POSITION_KP  (0.010f)
 #define CAR_REVERSE_SYNC_LIMIT_COUNTS ((s16)35)
+#define CAR_TURN_SYNC_SPEED_KP        (0.20f)
+#define CAR_TURN_SYNC_POSITION_KP     (0.010f)
+#define CAR_TURN_SYNC_LIMIT_COUNTS    ((s16)35)
 
 /* 前进直线外环：把速度差和累计路程差直接换算为差动 PWM。 */
 #define CAR_FORWARD_PWM_SYNC_SPEED_KP    (10.0f)
@@ -62,5 +79,14 @@ void Control_SetWheels(s16 left_speed, s16 right_speed);
 void Control_Stop(void);
 void Control_RunTimedPID(s8 left_direction, s8 right_direction,
                          u16 run_time_ms, ControlLedStep led_effect);
+u8 Control_RunEncoderPID(s8 left_direction, s8 right_direction,
+                         u32 target_counts, u16 timeout_ms,
+                         ControlLedStep led_effect);
+
+/* 面向路径规划和后续避障的状态接口，灯效由接口内部自动绑定。 */
+void Control_MoveForward(u16 run_time_ms);
+void Control_MoveReverse(u16 run_time_ms);
+u8 Control_TurnLeft90(void);
+u8 Control_TurnRight90(void);
 
 #endif

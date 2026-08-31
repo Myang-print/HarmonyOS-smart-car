@@ -224,6 +224,22 @@ static s16 NormalizeRightEncoder(s16 raw_count)
     return (s16)(raw_count * RIGHT_ENCODER_FORWARD_SIGN);
 }
 
+static u8 WheelReached(s8 direction, u32 progress, u32 target_counts)
+{
+    if (direction == 0)
+        return 1;
+    return (u8)(progress >= target_counts);
+}
+
+static u8 ActionReached(s8 left_direction, s8 right_direction,
+                        const ControlFeedback *feedback, u32 target_counts)
+{
+    return (u8)(WheelReached(left_direction, feedback->left_progress,
+                             target_counts)
+             && WheelReached(right_direction, feedback->right_progress,
+                             target_counts));
+}
+
 /**************************************************************************
 函数功能：读取并归一化左右编码器，同时累计车轮实际前进脉冲
 入口参数：左右轮动作方向、反馈结构体
@@ -262,6 +278,64 @@ static s16 SelectBaseTarget(u16 control_step)
     }
 
     return CAR_CRUISE_COUNTS;
+}
+
+/**************************************************************************
+函数功能：生成原地转向的平滑目标速度
+入口参数：控制周期、左右方向、累计计数和目标计数
+返回值  ：本周期目标编码器计数
+说明    ：起步逐渐加速，接近90度目标时逐渐减速，降低过冲
+**************************************************************************/
+static s16 SelectTurnTarget(u16 control_step,
+                            s8 left_direction, s8 right_direction,
+                            const ControlFeedback *feedback,
+                            u32 target_counts)
+{
+    s16 target;
+    s16 ramp_target;
+    u32 remaining;
+    u32 wheel_remaining;
+
+    target = CAR_TURN_COUNTS;
+    if (control_step < CAR_START_RAMP_STEPS)
+    {
+        ramp_target = CAR_MIN_TARGET_COUNTS
+                    + (s16)(((s32)(CAR_TURN_COUNTS
+                                      - CAR_MIN_TARGET_COUNTS)
+                               * (control_step + 1))
+                              / CAR_START_RAMP_STEPS);
+        if (ramp_target < target)
+            target = ramp_target;
+    }
+
+    remaining = target_counts;
+    if (left_direction != 0
+        && feedback->left_progress < target_counts)
+    {
+        wheel_remaining = target_counts - feedback->left_progress;
+        if (wheel_remaining < remaining)
+            remaining = wheel_remaining;
+    }
+    if (right_direction != 0
+        && feedback->right_progress < target_counts)
+    {
+        wheel_remaining = target_counts - feedback->right_progress;
+        if (wheel_remaining < remaining)
+            remaining = wheel_remaining;
+    }
+
+    if (remaining < CAR_TURN_DECEL_COUNTS)
+    {
+        ramp_target = CAR_MIN_TARGET_COUNTS
+                    + (s16)(((u32)(CAR_TURN_COUNTS
+                                      - CAR_MIN_TARGET_COUNTS)
+                               * remaining)
+                              / CAR_TURN_DECEL_COUNTS);
+        if (ramp_target < target)
+            target = ramp_target;
+    }
+
+    return target;
 }
 
 /**************************************************************************
@@ -308,6 +382,40 @@ static s16 CalculateSyncCorrection(s8 left_direction, s8 right_direction,
         correction = (float)correction_limit;
     else if (correction < -(float)correction_limit)
         correction = -(float)correction_limit;
+
+    return (s16)correction;
+}
+
+/**************************************************************************
+函数功能：原地转向时同步左右轮速度和累计转动量
+入口参数：左右轮方向和编码器反馈
+返回值  ：目标计数修正量；正值表示左轮沿动作方向更快
+**************************************************************************/
+static s16 CalculateTurnSyncCorrection(s8 left_direction,
+                                       s8 right_direction,
+                                       const ControlFeedback *feedback)
+{
+    s16 left_motion_speed;
+    s16 right_motion_speed;
+    s32 position_error;
+    float correction;
+
+    if (left_direction == 0 || right_direction == 0)
+        return 0;
+
+    left_motion_speed = (s16)(feedback->left_speed * left_direction);
+    right_motion_speed = (s16)(feedback->right_speed * right_direction);
+    position_error = (s32)feedback->left_progress
+                   - (s32)feedback->right_progress;
+
+    correction = CAR_TURN_SYNC_SPEED_KP
+               * (float)(left_motion_speed - right_motion_speed)
+               + CAR_TURN_SYNC_POSITION_KP * (float)position_error;
+
+    if (correction > (float)CAR_TURN_SYNC_LIMIT_COUNTS)
+        correction = (float)CAR_TURN_SYNC_LIMIT_COUNTS;
+    else if (correction < -(float)CAR_TURN_SYNC_LIMIT_COUNTS)
+        correction = -(float)CAR_TURN_SYNC_LIMIT_COUNTS;
 
     return (s16)correction;
 }
@@ -419,6 +527,17 @@ static void ReportWheelSpeed(s8 direction,
            left_motion_count, right_motion_count,
            straight_correction,
            left_pwm, right_pwm);
+}
+
+static void ReportTurnProgress(char turn_direction,
+                               const ControlFeedback *feedback,
+                               u32 target_counts,
+                               s16 left_pwm, s16 right_pwm)
+{
+    printf("TURN,%c,LC=%lu,RC=%lu,TARGET=%lu,LP=%d,RP=%d\r\n",
+           turn_direction,
+           feedback->left_progress, feedback->right_progress,
+           target_counts, left_pwm, right_pwm);
 }
 
 /**************************************************************************
@@ -564,4 +683,148 @@ void Control_RunTimedPID(s8 left_direction, s8 right_direction,
                          u16 run_time_ms, ControlLedStep led_effect)
 {
     RunPIDAction(left_direction, right_direction, run_time_ms, led_effect);
+}
+
+/**************************************************************************
+函数功能：执行编码器定距转向动作
+入口参数：左右方向、目标计数、超时时间和对应状态灯效
+返回值  ：1表示两轮均到达目标，0表示参数错误或执行超时
+**************************************************************************/
+u8 Control_RunEncoderPID(s8 left_direction, s8 right_direction,
+                         u32 target_counts, u16 timeout_ms,
+                         ControlLedStep led_effect)
+{
+    SpeedPI left_controller;
+    SpeedPI right_controller;
+    ControlFeedback feedback;
+    u16 elapsed;
+    u16 control_step;
+    s16 base_target;
+    s16 correction;
+    s16 left_target;
+    s16 right_target;
+    s16 left_pwm;
+    s16 right_pwm;
+    u8 reached;
+    char turn_direction;
+
+    if (left_direction < -1 || left_direction > 1
+        || right_direction < -1 || right_direction > 1
+        || (left_direction == 0 && right_direction == 0)
+        || target_counts == 0 || timeout_ms == 0)
+    {
+        Control_Stop();
+        return 0;
+    }
+
+    feedback.left_speed = 0;
+    feedback.right_speed = 0;
+    feedback.left_progress = 0;
+    feedback.right_progress = 0;
+    elapsed = 0;
+    control_step = 0;
+    reached = 0;
+    left_pwm = 0;
+    right_pwm = 0;
+    turn_direction = left_direction > right_direction ? 'R' : 'L';
+
+    SpeedPI_Reset(&left_controller, left_direction,
+                  CAR_TURN_FEEDFORWARD);
+    SpeedPI_Reset(&right_controller, right_direction,
+                  CAR_TURN_FEEDFORWARD);
+    Encoder_Reset();
+
+    while (elapsed < timeout_ms)
+    {
+        ReadControlFeedback(left_direction, right_direction, &feedback);
+        if (ActionReached(left_direction, right_direction,
+                          &feedback, target_counts))
+        {
+            reached = 1;
+            break;
+        }
+
+        base_target = SelectTurnTarget(control_step,
+                                       left_direction, right_direction,
+                                       &feedback, target_counts);
+        correction = CalculateTurnSyncCorrection(left_direction,
+                                                  right_direction,
+                                                  &feedback);
+
+        left_target = ClampS16((s16)(base_target - correction),
+                               CAR_MIN_TARGET_COUNTS,
+                               CAR_TURN_COUNTS
+                               + CAR_TURN_SYNC_LIMIT_COUNTS);
+        right_target = ClampS16((s16)(base_target + correction),
+                                CAR_MIN_TARGET_COUNTS,
+                                CAR_TURN_COUNTS
+                                + CAR_TURN_SYNC_LIMIT_COUNTS);
+
+        if (WheelReached(left_direction, feedback.left_progress,
+                         target_counts))
+            left_target = 0;
+        else
+            left_target = (s16)(left_target * left_direction);
+
+        if (WheelReached(right_direction, feedback.right_progress,
+                         target_counts))
+            right_target = 0;
+        else
+            right_target = (s16)(right_target * right_direction);
+
+        left_pwm = SpeedPI_Update(&left_controller, left_target,
+                                  feedback.left_speed);
+        right_pwm = SpeedPI_Update(&right_controller, right_target,
+                                   feedback.right_speed);
+        Control_SetWheels(left_pwm, right_pwm);
+
+        if ((control_step + 1) % CAR_SPEED_REPORT_STEPS == 0)
+            ReportTurnProgress(turn_direction, &feedback, target_counts,
+                               left_pwm, right_pwm);
+
+        if (led_effect != 0)
+            led_effect();
+
+        delay_ms(CAR_CONTROL_PERIOD_MS);
+        elapsed += CAR_CONTROL_PERIOD_MS;
+        control_step++;
+    }
+
+    Control_Stop();
+    LED_All_Off_Step();
+
+    if (reached == 0)
+    {
+        printf("TURN,%c,TIMEOUT,LC=%lu,RC=%lu,TARGET=%lu\r\n",
+               turn_direction,
+               feedback.left_progress, feedback.right_progress,
+               target_counts);
+    }
+
+    delay_ms(CAR_STOP_PAUSE_MS);
+    return reached;
+}
+
+void Control_MoveForward(u16 run_time_ms)
+{
+    Control_RunTimedPID(1, 1, run_time_ms, LED_State_Forward_Step);
+}
+
+void Control_MoveReverse(u16 run_time_ms)
+{
+    Control_RunTimedPID(-1, -1, run_time_ms, LED_State_Reverse_Step);
+}
+
+u8 Control_TurnLeft90(void)
+{
+    return Control_RunEncoderPID(-1, 1, CAR_LEFT_SPIN_90_COUNTS,
+                                 CAR_TURN_TIMEOUT_MS,
+                                 LED_State_Left_Step);
+}
+
+u8 Control_TurnRight90(void)
+{
+    return Control_RunEncoderPID(1, -1, CAR_RIGHT_SPIN_90_COUNTS,
+                                 CAR_TURN_TIMEOUT_MS,
+                                 LED_State_Right_Step);
 }

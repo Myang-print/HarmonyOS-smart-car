@@ -38,3 +38,4 @@
 ..\obj\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdlib.h
 ..\obj\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\math.h
 ..\obj\main.o: ..\QST_HARDWARE\SYSTEM_CONTROL\control_system.h
+..\obj\main.o: ..\QST_HARDWARE\colorful_led\colorful_led.h

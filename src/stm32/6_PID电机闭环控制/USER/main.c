@@ -1,12 +1,53 @@
 #include "stm32f10x.h"
 #include "sys.h"
 #include "control_system.h"
+#include "colorful_led.h"
+#include "delay.h"
 
 /**************************************************************************
-函数功能：周期执行 PID 闭环前进和后退
+函数功能：执行一次包含四种运动状态的闭合周期路径
+入口参数：无
+返回值  ：1表示路径完成，0表示某次90度转向超时
+说明    ：理论路径会回到起点和原朝向，便于后续接入避障状态机
+**************************************************************************/
+static u8 RunClosedPathCycle(void)
+{
+    printf("PATH,1,FORWARD\r\n");
+    Control_MoveForward(CAR_PATH_SEGMENT_TIME_MS);
+
+    printf("PATH,2,RIGHT_90\r\n");
+    if (Control_TurnRight90() == 0)
+        return 0;
+
+    printf("PATH,3,FORWARD\r\n");
+    Control_MoveForward(CAR_PATH_SEGMENT_TIME_MS);
+
+    printf("PATH,4,LEFT_90\r\n");
+    if (Control_TurnLeft90() == 0)
+        return 0;
+
+    printf("PATH,5,REVERSE\r\n");
+    Control_MoveReverse(CAR_PATH_SEGMENT_TIME_MS);
+
+    printf("PATH,6,RIGHT_90\r\n");
+    if (Control_TurnRight90() == 0)
+        return 0;
+
+    printf("PATH,7,REVERSE\r\n");
+    Control_MoveReverse(CAR_PATH_SEGMENT_TIME_MS);
+
+    printf("PATH,8,LEFT_90\r\n");
+    if (Control_TurnLeft90() == 0)
+        return 0;
+
+    printf("PATH,CYCLE_COMPLETE\r\n");
+    return 1;
+}
+
+/**************************************************************************
+函数功能：初始化小车并周期执行闭合路径
 入口参数：无
 返回值  ：程序持续循环，不返回
-说明    ：两轮 PI 调速并结合累计编码器差，自动修正左右轮速度
 **************************************************************************/
 int main(void)
 {
@@ -21,19 +62,18 @@ int main(void)
     Control_Stop();
     LED_All_Off_Step();
 
-    printf("PID forward/reverse cycle ready\r\n");
+    printf("PID state-light path ready\r\n");
+    printf("LIGHT,F=BREATH,B=RED_BREATH,L=BLUE_CCW,R=RED_CW\r\n");
     delay_ms(3000);                   // 留出放置小车和松开复位键的时间
 
     while (1)
     {
-        /* 前进：双轮 PID 闭环，环形炫彩灯。 */
-        printf("ACTION: PID forward\r\n");
-        Control_RunTimedPID(1, 1, CAR_STRAIGHT_TIME_MS,
-                            LED_Colorful_Ring_Step);
-
-        /* 后退：双轮 PID 闭环，全车红色呼吸灯。 */
-        printf("ACTION: PID reverse\r\n");
-        Control_RunTimedPID(-1, -1, CAR_REVERSE_TIME_MS,
-                            LED_Red_Breathing_Step);
+        if (RunClosedPathCycle() == 0)
+        {
+            printf("PATH,ABORTED,RETRY_AFTER_3S\r\n");
+            Control_Stop();
+            LED_All_Off_Step();
+            delay_ms(3000);
+        }
     }
 }

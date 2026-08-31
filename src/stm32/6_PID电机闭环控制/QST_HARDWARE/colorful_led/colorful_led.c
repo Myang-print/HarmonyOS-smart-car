@@ -834,3 +834,205 @@ void LED_Blue_CounterClockwise_Gradient_Step(void) {
   else
     head--;
 }
+
+/* 灯效由50ms电机控制周期推进，函数内部不得加入阻塞延时。 */
+#define LED_EFFECT_FRAME_MS          ((u16)50)
+#define LED_SPARK_INTERVAL_MS        ((u16)80)
+
+/**************************************************************************
+函数功能：设置前后两组6灯中的同一个逻辑位置
+入口参数：position取值0~5，red、green、blue为颜色分量
+返回值  ：无
+说明    ：后灯顺序反向映射，使前后灯组的视觉旋转方向保持一致
+**************************************************************************/
+static void LED_Set_Paired_Pixel(u8 position, u8 red, u8 green, u8 blue) {
+  position %= led_num;
+  L_ws2812_rgb(position + 1, red, green, blue);
+  R_ws2812_rgb(led_num - position, red, green, blue);
+}
+
+static u8 LED_Scale_Channel(u8 channel, u8 brightness) {
+  return (u8)(((u16)channel * brightness) / 255);
+}
+
+/**************************************************************************
+函数功能：呼吸光环推进一帧
+入口参数：无
+返回值  ：无
+说明    ：正弦近似表控制10%~100%亮度，相邻灯加入轻微相位延迟
+**************************************************************************/
+void LED_Breath_Wave_Step(void) {
+  static const u8 sine_curve[32] = {
+      0, 2, 10, 22, 37, 56, 79, 103,
+      128, 152, 176, 199, 218, 234, 245, 253,
+      255, 253, 245, 234, 218, 199, 176, 152,
+      128, 103, 79, 56, 37, 22, 10, 2};
+  static u8 phase = 0;
+  static u8 hold = 0;
+  u8 position;
+  u8 curve_value;
+  u8 brightness;
+
+  for (position = 0; position < led_num; position++) {
+    curve_value = sine_curve[(phase + (position / 2)) % 32];
+    brightness = (u8)(26 + ((u16)curve_value * 229) / 255);
+    LED_Set_Paired_Pixel(position,
+                         LED_Scale_Channel(70, brightness),
+                         LED_Scale_Channel(180, brightness),
+                         brightness);
+  }
+  LED_Show_Frame();
+
+  /* 每两帧推进一次，完整呼吸周期约3.2秒。 */
+  hold++;
+  if (hold >= 2) {
+    hold = 0;
+    phase++;
+    if (phase >= 32)
+      phase = 0;
+  }
+}
+
+/**************************************************************************
+函数功能：彗星追逐推进一帧
+入口参数：无
+返回值  ：无
+说明    ：顺时针移动一个高亮头部，后方保留2颗逐级衰减的尾灯
+**************************************************************************/
+void LED_Comet_Chase_Step(void) {
+  static const u8 tail_brightness[3] = {255, 105, 32};
+  static u8 head = 0;
+  u8 tail;
+  u8 position;
+  u8 brightness;
+
+  LED_Clear_Frame();
+  for (tail = 0; tail < 3; tail++) {
+    position = (head + led_num - tail) % led_num;
+    brightness = tail_brightness[tail];
+    LED_Set_Paired_Pixel(position,
+                         LED_Scale_Channel(150, brightness),
+                         LED_Scale_Channel(235, brightness),
+                         brightness);
+  }
+  LED_Show_Frame();
+
+  head++;
+  if (head >= led_num)
+    head = 0;
+}
+
+/**************************************************************************
+函数功能：双向碰撞推进一帧
+入口参数：无
+返回值  ：无
+说明    ：按(1,4)->(2,6)->(3,5)扩散，中心碰撞闪白后按原路反弹
+**************************************************************************/
+void LED_Symmetric_Expand_Step(void) {
+  static const u8 pairs[3][2] = {{0, 3}, {1, 5}, {2, 4}};
+  static const u8 sequence[6] = {0, 1, 2, 3, 2, 1};
+  static u8 sequence_index = 0;
+  static u8 hold = 3;
+  u8 position;
+  u8 stage;
+
+  hold++;
+  if (hold < 3)
+    return;
+  hold = 0;
+
+  LED_Clear_Frame();
+  stage = sequence[sequence_index];
+  if (stage < 3) {
+    LED_Set_Paired_Pixel(pairs[stage][0], 210, 45, 255);
+    LED_Set_Paired_Pixel(pairs[stage][1], 45, 170, 255);
+  } else {
+    /* 碰撞帧：6颗灯同时短促闪白。 */
+    for (position = 0; position < led_num; position++)
+      LED_Set_Paired_Pixel(position, WS_WHITE);
+  }
+  LED_Show_Frame();
+
+  sequence_index++;
+  if (sequence_index >= 6)
+    sequence_index = 0;
+}
+
+static u8 LED_Next_Random(void) {
+  static u16 random_state = 0xACE1;
+  static u8 seeded = 0;
+
+  if (seeded == 0) {
+    random_state ^= (u16)SysTick->VAL;
+    if (random_state == 0)
+      random_state = 0xACE1;
+    seeded = 1;
+  }
+
+  if ((random_state & 0x0001) != 0)
+    random_state = (u16)((random_state >> 1) ^ 0xB400);
+  else
+    random_state >>= 1;
+  return (u8)random_state;
+}
+
+/**************************************************************************
+函数功能：量子跃迁随机闪烁一帧
+入口参数：无
+返回值  ：无
+说明    ：平均80ms更新一次，每颗灯约30%概率产生一次短促微亮爆闪
+**************************************************************************/
+void LED_Quantum_Spark_Step(void) {
+  static u16 elapsed_ms = LED_SPARK_INTERVAL_MS;
+  u8 position;
+  u8 random_value;
+  u8 brightness;
+  u8 color_select;
+
+  elapsed_ms += LED_EFFECT_FRAME_MS;
+  if (elapsed_ms < LED_SPARK_INTERVAL_MS)
+    return;
+  elapsed_ms -= LED_SPARK_INTERVAL_MS;
+
+  LED_Clear_Frame();
+  for (position = 0; position < led_num; position++) {
+    random_value = LED_Next_Random();
+    if (random_value < 77) {
+      brightness = (u8)(35 + (LED_Next_Random() % 150));
+      color_select = LED_Next_Random() % 3;
+      if (color_select == 0)
+        LED_Set_Paired_Pixel(position, brightness, brightness, brightness);
+      else if (color_select == 1)
+        LED_Set_Paired_Pixel(position,
+                             LED_Scale_Channel(70, brightness),
+                             LED_Scale_Channel(210, brightness),
+                             brightness);
+      else
+        LED_Set_Paired_Pixel(position,
+                             brightness,
+                             LED_Scale_Channel(50, brightness),
+                             LED_Scale_Channel(220, brightness));
+    }
+  }
+  LED_Show_Frame();
+}
+
+/**************************************************************************
+函数功能：根据小车运动状态选择唯一灯效
+说明    ：高层移动接口只调用这4个函数，保证灯光不会与运动方向不一致
+**************************************************************************/
+void LED_State_Forward_Step(void) {
+  LED_Breath_Wave_Step();
+}
+
+void LED_State_Reverse_Step(void) {
+  LED_Red_Breathing_Step();
+}
+
+void LED_State_Left_Step(void) {
+  LED_Blue_CounterClockwise_Gradient_Step();
+}
+
+void LED_State_Right_Step(void) {
+  LED_Red_Clockwise_Gradient_Step();
+}
