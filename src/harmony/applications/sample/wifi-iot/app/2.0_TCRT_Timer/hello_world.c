@@ -1,0 +1,1 @@
+/home/harmony/harmony/code/code-1.0/applications/sample/wifi-iot/app

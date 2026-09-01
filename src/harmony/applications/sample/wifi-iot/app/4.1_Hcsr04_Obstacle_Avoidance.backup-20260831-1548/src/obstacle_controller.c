@@ -74,9 +74,7 @@ uint8_t ObstacleController_Update(ObstacleController *controller,
         case OBSTACLE_STATE_STOP:
             if (controller->sensorFaultStop) {
                 controller->sensorFaultStop = false;
-                /* Startup/sensor recovery follows the 20 cm functional spec.
-                 * The wider clear threshold is only used after a real obstacle. */
-                if (distanceCm >= controller->config.obstacleThresholdCm) {
+                if (distanceCm >= controller->config.clearThresholdCm) {
                     EnterState(controller, OBSTACLE_STATE_FORWARD, nowMs);
                     return CAR_COMMAND_FORWARD;
                 }

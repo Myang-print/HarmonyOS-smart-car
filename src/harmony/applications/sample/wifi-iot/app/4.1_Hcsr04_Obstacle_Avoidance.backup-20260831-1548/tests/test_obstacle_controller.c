@@ -75,13 +75,13 @@ static void TestThresholdBoundaryIsClear(void)
            CAR_COMMAND_FORWARD);
 }
 
-static void TestFirstValidReadingAtTwentyTwoCmStartsForward(void)
+static void TestHysteresisDoesNotRestartAtTwentyTwoCm(void)
 {
     ObstacleController controller = NewController(0U, 1U);
     (void)ObstacleController_Update(&controller, 0U, false, 0.0F);
     assert(ObstacleController_Update(&controller, 10U, true, 22.0F) ==
-           CAR_COMMAND_FORWARD);
-    assert(controller.state == OBSTACLE_STATE_FORWARD);
+           CAR_COMMAND_STOP);
+    assert(controller.state == OBSTACLE_STATE_STOP);
 }
 
 static void TestPersistentObstacleRestopsAfterTurn(void)
@@ -129,7 +129,7 @@ int main(void)
     TestStopThenForwardOnClearPath();
     TestNearObstacleStopsImmediately();
     TestThresholdBoundaryIsClear();
-    TestFirstValidReadingAtTwentyTwoCmStartsForward();
+    TestHysteresisDoesNotRestartAtTwentyTwoCm();
     TestPersistentObstacleRestopsAfterTurn();
     TestTimeCounterWraparound();
     TestRandomStrategyUsesBothDirections();

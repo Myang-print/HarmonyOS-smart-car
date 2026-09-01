@@ -13,21 +13,12 @@
 #define OBSTACLE_THRESHOLD_CM 20.0F
 #define CLEAR_THRESHOLD_CM 25.0F
 #define STOP_DURATION_MS 500U
-#define TURN_DURATION_MS 300U
-#define SENSOR_STALE_MS 500U
-#define CONTROL_PERIOD_MS 20U
-#define COMMAND_REFRESH_MS 100U
+/* STM32 needs at most 1.66 s to brake, reverse, turn and probe. */
+#define TURN_INTENT_HOLD_MS 2000U
+#define CONTROL_IDLE_MS 20U
 #define LOG_PERIOD_MS 1000U
+#define TRANSIENT_FAILURE_LIMIT 1U
 #define TASK_STACK_SIZE (4U * 1024U)
-
-typedef struct {
-    float distanceCm;
-    uint32_t measuredMs;
-    bool valid;
-} DistanceSnapshot;
-
-static DistanceSnapshot g_distance;
-static osMutexId_t g_distanceMutex;
 
 static uint32_t GetMilliseconds(void)
 {
@@ -40,113 +31,86 @@ static void DelayMilliseconds(uint32_t milliseconds)
     osDelay((ticks == 0U) ? 1U : ticks);
 }
 
-static void SensorTask(void *argument)
-{
-    DistanceSnapshot measured = {0};
-    (void)argument;
-
-    while (1) {
-        measured.valid = Hcsr04_ReadMedian(&measured.distanceCm);
-        measured.measuredMs = GetMilliseconds();
-
-        (void)osMutexAcquire(g_distanceMutex, osWaitForever);
-        g_distance = measured;
-        (void)osMutexRelease(g_distanceMutex);
-    }
-}
-
-static void ControlTask(void *argument)
+static void ObstacleTask(void *argument)
 {
     const ObstacleConfig config = {
         OBSTACLE_THRESHOLD_CM, CLEAR_THRESHOLD_CM,
-        STOP_DURATION_MS, TURN_DURATION_MS
+        STOP_DURATION_MS, TURN_INTENT_HOLD_MS
     };
     ObstacleController controller;
-    DistanceSnapshot snapshot;
     ObstacleState previousState = OBSTACLE_STATE_STOP;
+    float distanceCm = 0.0F;
     uint32_t nowMs = GetMilliseconds();
-    uint32_t lastCommandMs = nowMs - COMMAND_REFRESH_MS;
     uint32_t lastLogMs = nowMs - LOG_PERIOD_MS;
     uint8_t previousCommand = 0U;
+    uint8_t invalidStreak = 0U;
     uint8_t command;
-    bool fresh;
+    bool valid;
+    bool decisionValid;
+    bool hasValidDistance = false;
     (void)argument;
 
     ObstacleController_Init(&controller, &config, nowMs,
                             hi_get_us() ^ 0xA341316CU);
+    printf("obstacle controller ready: UART1_TX GPIO6, 2400-8-N-1\r\n");
 
     while (1) {
+        valid = Hcsr04_ReadMedian(&distanceCm);
         nowMs = GetMilliseconds();
-        (void)osMutexAcquire(g_distanceMutex, osWaitForever);
-        snapshot = g_distance;
-        (void)osMutexRelease(g_distanceMutex);
+        if (valid) {
+            hasValidDistance = true;
+            invalidStreak = 0U;
+        } else if (invalidStreak < UINT8_MAX) {
+            ++invalidStreak;
+        }
+        decisionValid = valid ||
+                        (hasValidDistance &&
+                         (invalidStreak <= TRANSIENT_FAILURE_LIMIT));
+        command = ObstacleController_Update(&controller, nowMs, decisionValid,
+                                             distanceCm);
 
-        fresh = snapshot.valid &&
-                ((uint32_t)(nowMs - snapshot.measuredMs) <= SENSOR_STALE_MS);
-        command = ObstacleController_Update(&controller, nowMs, fresh,
-                                             snapshot.distanceCm);
-
-        if ((command != previousCommand) ||
-            ((uint32_t)(nowMs - lastCommandMs) >= COMMAND_REFRESH_MS)) {
-            if (!CarUart_SendCommand(command)) {
-                printf("car GPIO link write failed\r\n");
-            }
-            previousCommand = command;
-            lastCommandMs = nowMs;
+        if (!CarUart_SendCommand(command)) {
+            printf("car framed UART link write failed\r\n");
+            (void)CarUart_SendCommand(CAR_COMMAND_STOP);
         }
 
-        if ((controller.state != previousState) ||
+        if ((command != previousCommand) ||
+            (controller.state != previousState) ||
             ((uint32_t)(nowMs - lastLogMs) >= LOG_PERIOD_MS)) {
-            printf("obstacle state=%s distance=%s%.1fcm command=%c gpio=%u%u\r\n",
+            printf("obstacle state=%s distance=%s%.1fcm command=%c link=UART1\r\n",
                    ObstacleController_StateName(controller.state),
-                   fresh ? "" : "INVALID/", snapshot.distanceCm, command,
-                   (command == CAR_COMMAND_TURN_LEFT ||
-                    command == CAR_COMMAND_TURN_RIGHT) ? 1U : 0U,
-                   (command == CAR_COMMAND_FORWARD ||
-                    command == CAR_COMMAND_TURN_RIGHT) ? 1U : 0U);
+                   valid ? "" : (decisionValid ? "REUSED/" : "INVALID/"),
+                   distanceCm, command);
+            previousCommand = command;
             previousState = controller.state;
             lastLogMs = nowMs;
         }
-        DelayMilliseconds(CONTROL_PERIOD_MS);
+        DelayMilliseconds(CONTROL_IDLE_MS);
     }
 }
 
 static void Hcsr04ObstacleApp(void)
 {
-    osThreadAttr_t sensorAttr = {0};
-    osThreadAttr_t controlAttr = {0};
+    osThreadAttr_t taskAttr = {0};
 
     WatchDogDisable();
-    g_distanceMutex = osMutexNew(NULL);
-    if (g_distanceMutex == NULL) {
-        printf("distance mutex creation failed\r\n");
-        return;
-    }
     if (!Hcsr04_Init()) {
         printf("HC-SR04 initialization failed\r\n");
         return;
     }
     if (!CarUart_Init()) {
-        printf("car GPIO link initialization failed\r\n");
+        printf("car framed UART link initialization failed\r\n");
         return;
     }
 
-    /* Keep the STM32 stopped until the first valid distance is available. */
+    /* No movement is allowed before the first valid distance decision. */
     (void)CarUart_SendCommand(CAR_COMMAND_STOP);
 
-    sensorAttr.name = "hcsr04_sensor";
-    sensorAttr.stack_size = TASK_STACK_SIZE;
-    sensorAttr.priority = osPriorityNormal;
-    controlAttr.name = "obstacle_control";
-    controlAttr.stack_size = TASK_STACK_SIZE;
-    controlAttr.priority = osPriorityAboveNormal;
-
-    if (osThreadNew(SensorTask, NULL, &sensorAttr) == NULL) {
-        printf("sensor task creation failed\r\n");
-        return;
-    }
-    if (osThreadNew(ControlTask, NULL, &controlAttr) == NULL) {
-        printf("control task creation failed\r\n");
+    taskAttr.name = "obstacle_control";
+    taskAttr.stack_size = TASK_STACK_SIZE;
+    taskAttr.priority = osPriorityAboveNormal;
+    if (osThreadNew(ObstacleTask, NULL, &taskAttr) == NULL) {
+        printf("obstacle task creation failed\r\n");
         (void)CarUart_SendCommand(CAR_COMMAND_STOP);
     }
 }
