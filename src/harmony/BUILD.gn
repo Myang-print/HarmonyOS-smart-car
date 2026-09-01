@@ -1,0 +1,37 @@
+# Copyright (c) 2020 Huawei Device Co., Ltd.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+import("//build/lite/config/component/lite_component.gni")
+
+lite_component("app") {
+    features = [
+        #"1.0_Hello_World:hello_world",
+        #"2.0_TCRT_Timer:TCRT",
+        "2.1_TableGuard:TableGuard",
+        #"3.0_SG90_Mutex:SG90",
+        #"4.1_Hcsr04_Obstacle_Avoidance:Hcsr04Obstacle",
+        #"5.0_Uart_BLE:Uart",
+        #"6.0_Sum_Experiment_First:Sum_Experiment_First",
+        #"7.0_I2c_Ssd1306:I2c_Ssd1306",
+        #"8.0_Sht20:Sht20",
+        
+        #"9.0_Ap3216c:Ap3216c",
+        #"10.0_WIFI_Connect:WIFI",
+        #"11.0_Sum_Experiment_Second:QST_car_xxx",
+        "12.0_UART_Correspondence:correspondence",
+        #"13.0_Obstacle_Avoidance:Avoidance",
+        #"14.0_Bluetooth_control:Control",
+        #"15.0_Infrared_tracing:Tracing",
+        #"16.0_QST_CAR:QST_car_xxx",
+    ]
+}
