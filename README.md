@@ -1,6 +1,6 @@
 # HarmonyOS Smart Car
 
-Hi3861负责传感器、路径/避障决策和上层任务，STM32F103负责串口接收、电机PWM、编码器闭环与WS2812状态灯。仓库按实验阶段保存可独立构建的示例，同时保留两套不同目的的Hi3861—STM32控制链路。
+Hi3861负责传感器、蓝牙字符接收和上层任务，STM32F103负责串口接收、电机PWM、编码器闭环与WS2812状态灯。仓库按实验阶段保存可独立构建的示例。
 
 ## 系统分工
 
@@ -14,14 +14,15 @@ Hi3861  ── UART命令 ──>  STM32F103  ──>  电机驱动/编码器/WS
 | Hi3861 / OpenHarmony | GPIO/I2C传感器、RTOS任务、路径与避障决策、发送车控帧 | `src/harmony/` |
 | STM32F103 / Keil | 协议解析、电机PWM、编码器PI、失联停车、灯光诊断 | `src/stm32/` |
 
-## 当前两套车控链路
+## 当前车控链路
 
 | 用途 | Hi3861 | STM32 | 接线与协议 |
 | --- | --- | --- | --- |
 | 双轮速度与轨迹控制 | `12.0_UART_Correspondence` | `7_串口通信` | GPIO11→PA10，115200，`FC dir speed dir speed FD` |
 | 超声波自主避障 | `4.1_Hcsr04_Obstacle_Avoidance` | `41_Autonomous_Obstacle_Avoidance` | GPIO6→PB8，2400，`A5 5A seq cmd xor` |
+| 手机蓝牙字符遥控（待实机验收） | `12.1_Bluetooth_Control` | `7.1_Bluetooth_Control` | 手机→BLE→GPIO0/1；GPIO11→PA10；9600/115200 |
 
-两套链路的引脚、波特率和帧格式互不兼容。烧录前必须成对选择Hi3861与STM32工程，并让两块控制板共地。
+各链路的引脚、波特率和协议互不兼容。手机蓝牙链路由Hi3861 UART1接收字符，再由UART2向STM32发送电机帧；两端都必须烧录配对固件。
 
 当前速度控制协议采用6字节帧，方向0为正转、1为反转，速度范围0~250；STM32超过2秒未收到合法帧会停车。详细帧、灯光诊断和V5综合路径见两端模块README。
 

@@ -17,7 +17,7 @@ lite_component("app") {
     features = [
         #"1.0_Hello_World:hello_world",
         #"2.0_TCRT_Timer:TCRT",
-        "2.1_TableGuard:TableGuard",
+        #"2.1_TableGuard:TableGuard",
         #"3.0_SG90_Mutex:SG90",
         #"4.1_Hcsr04_Obstacle_Avoidance:Hcsr04Obstacle",
         #"5.0_Uart_BLE:Uart",
@@ -28,7 +28,8 @@ lite_component("app") {
         #"9.0_Ap3216c:Ap3216c",
         #"10.0_WIFI_Connect:WIFI",
         #"11.0_Sum_Experiment_Second:QST_car_xxx",
-        "12.0_UART_Correspondence:correspondence",
+        #"12.0_UART_Correspondence:correspondence",
+        "12.1_Bluetooth_Control:bluetooth_control",
         #"13.0_Obstacle_Avoidance:Avoidance",
         #"14.0_Bluetooth_control:Control",
         #"15.0_Infrared_tracing:Tracing",

@@ -10,6 +10,7 @@
 | `5_Timer编码器测速/` | 双编码器测速并周期串口输出 | TIM2、TIM3、USART1 |
 | `6_PID电机闭环控制/` | 编码器PI、90°转向与闭合路径 | TIM2/3/4、WS2812 |
 | `7_串口通信/` | 接收Hi3861双轮速度帧并闭环执行 | PA10/USART1，115200 |
+| `7.1_Bluetooth_Control/` | 执行Hi3861转发的手机蓝牙动作（待实机验收） | PA10/USART1，115200，`FC ... FD` |
 | `41_Autonomous_Obstacle_Avoidance/` | 接收Hi3861离散避障命令并执行状态机 | PB8软件UART，2400 |
 
 ## 构建与验收
