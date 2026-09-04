@@ -1,0 +1,11 @@
+static_library("iter0_sensor_diagnostic") {
+    sources = [
+        "iter0_sensor_diagnostic.c",
+    ]
+
+    include_dirs = [
+        "//utils/native/lite/include",
+        "//kernel/liteos_m/components/cmsis/2.0",
+        "//base/iot_hardware/interfaces/kits/wifiiot_lite",
+    ]
+}

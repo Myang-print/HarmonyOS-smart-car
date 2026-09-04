@@ -16,15 +16,15 @@ Hi3861  ── UART命令 ──>  STM32F103  ──>  电机驱动/编码器/WS
 
 ## 当前车控链路
 
-| 用途 | Hi3861 | STM32 | 接线与协议 |
-| --- | --- | --- | --- |
-| 双轮速度与轨迹控制 | `12.0_UART_Correspondence` | `7_串口通信` | GPIO11→PA10，115200，`FC dir speed dir speed FD` |
-| 超声波自主避障 | `4.1_Hcsr04_Obstacle_Avoidance` | `41_Autonomous_Obstacle_Avoidance` | GPIO6→PB8，2400，`A5 5A seq cmd xor` |
-| 手机蓝牙字符遥控（待实机验收） | `12.1_Bluetooth_Control` | `7.1_Bluetooth_Control` | 手机→BLE→GPIO0/1；GPIO11→PA10；9600/115200 |
+| 用途 | Hi3861 | STM32 | 接线与协议 | 当前状态 |
+| --- | --- | --- | --- | --- |
+| 双轮速度与轨迹控制 | `12.0_UART_Correspondence` | `7_串口通信` | GPIO11→PA10，115200，`FC dir speed dir speed FD` | 后续循迹执行基线 |
+| 手机蓝牙字符遥控 | `12.1_Bluetooth_Control` | `7.1_Bluetooth_Control` | 手机→BLE→GPIO0/1；GPIO11→PA10；9600/115200 | 当前Hi3861构建选择，待实机验收 |
+| 超声波自主避障 | `4.1_Hcsr04_Obstacle_Avoidance` | `41_Autonomous_Obstacle_Avoidance` | GPIO6→PB8，2400，`A5 5A seq cmd xor` | STM32目录当前在工作树中被删除，仅作历史兼容记录 |
 
-各链路的引脚、波特率和协议互不兼容。手机蓝牙链路由Hi3861 UART1接收字符，再由UART2向STM32发送电机帧；两端都必须烧录配对固件。
+两套车控协议的引脚、波特率和帧格式不兼容，不能交叉烧录或混接。手机蓝牙链路由Hi3861 UART1接收字符，再由UART2向STM32发送电机帧；两端都必须烧录配对固件。
 
-当前速度控制协议采用6字节帧，方向0为正转、1为反转，速度范围0~250；STM32超过2秒未收到合法帧会停车。详细帧、灯光诊断和V5综合路径见两端模块README。
+黑胶带循迹、岔路选择、死胡同回退和终点停车的后续开发统一采用GPIO11→PA10的6字节双轮速度协议：方向0为正转、1为反转，速度范围0~250；STM32超过2秒未收到合法帧会停车。完整接口、调用关系、安全约束和开发前验收项见 [PROTOCOL.md](PROTOCOL.md)。当前Iter0已确认赛道为黑胶带走线、两侧白胶带围边；起点和终点各自都是完整“干”字型标记，纵向黑线连续通过两条横线，中间存在白色间隔。
 
 ## 目录
 
@@ -51,7 +51,7 @@ HarmonyOS-smart-car/
 
 ## 构建
 
-Hi3861目录是OpenHarmony `app/` 内容快照，不是完整源码树。把 `src/harmony/BUILD.gn` 和目标示例同步到完整源码树的 `applications/sample/wifi-iot/app/`，只启用需要的Feature，再运行对应OpenHarmony版本的构建命令。
+Hi3861目录是OpenHarmony `app/` 内容快照，不是完整源码树。将整个 `src/harmony/` 复制到你虚拟机中平时使用的 `applications/sample/wifi-iot/app/` 目录；每轮由仓库中的 `src/harmony/BUILD.gn` 指定唯一 Feature，然后在对应 OpenHarmony 工程目录直接运行 `python build.py wifiiot`。Iter0 诊断时使用 `17_Iter0_Sensor_Diagnostic:iter0_sensor_diagnostic`，测试完成后再由开发者切回业务 Feature。
 
 STM32在目标工程的 `USER/` 中打开 `Template.uvprojx`，Rebuild后烧录 `OBJ/Template.hex`。构建产物必须来自当前源码，不能复用名称相同但时间较早的HEX。
 

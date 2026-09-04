@@ -17,6 +17,7 @@
 | `9.0_Ap3216c/` | 红外、环境光、接近三合一传感器 | I2C0，GPIO9/10 |
 | `12.0_UART_Correspondence/` | 规划综合轨迹并控制 STM32 双轮速度 | GPIO11/UART2，115200 baud |
 | `12.1_Bluetooth_Control/` | 接收手机蓝牙字符并转发双轮速度帧 | GPIO0/1 UART1 9600；GPIO11/12 UART2 115200 |
+| `17_Iter0_Sensor_Diagnostic/` | Iter0 双路红外原始电平诊断，不驱动电机 | GPIO13/14、结构化 UART 日志 |
 | `demolink/` | OpenHarmony Demo SDK 链接示例 | `SYS_RUN` |
 | `iothardware/` | GPIO9 LED 闪烁示例 | GPIO9 |
 | `samgr/` | SAMGR 服务、特性、消息与任务示例 | 系统服务框架 |
