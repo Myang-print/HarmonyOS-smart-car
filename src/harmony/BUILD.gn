@@ -2,7 +2,6 @@ import("//build/lite/config/component/lite_component.gni")
 
 lite_component("app") {
     features = [
-        # Iter1：只启用低速直线循迹诊断。
-        "20_Iter1_Line_Follow_Diagnostic:iter1_line_follow_diagnostic",
+        "21_Autonomous_Track:autonomous_track",
     ]
 }
