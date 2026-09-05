@@ -1,0 +1,32 @@
+- generic [active] [ref=e1]:
+  - main "HarmonyOS 智能小车实训汇报" [ref=e2]:
+    - text: 01 / 07 02 / 07 › › › › 03 / 07
+    - generic [ref=e3]:
+      - generic [ref=e4]: BLUETOOTH CONTROL
+      - heading "蓝牙控制小车的实现" [level=2] [ref=e5]
+      - generic [ref=e6]:
+        - article [ref=e7]:
+          - text: 有效指令
+          - paragraph [ref=e8]: 统一大小写和格式，映射为前进、后退、转向或停车意图
+        - article [ref=e9]:
+          - text: 持续按键
+          - paragraph [ref=e10]: 周期刷新当前目标，避免单次数据丢失造成动作中断
+        - article [ref=e11]:
+          - text: 连续切换
+          - paragraph [ref=e12]: 最新有效指令覆盖旧目标，减少动作排队带来的延迟
+        - article [ref=e13]:
+          - text: 未知字符
+          - paragraph [ref=e14]: 拒绝执行无法识别的数据，并回到安全动作
+        - article [ref=e15]:
+          - text: 数据不完整
+          - paragraph [ref=e16]: 等待完整消息或重新同步，不把半条消息当作命令
+        - article [ref=e17]:
+          - text: 通信中断
+          - paragraph [ref=e18]: 超过限定时间未收到有效更新，底层主动停车
+      - generic [ref=e19]: 接收输入 → 校验与解析 → 动作映射 → 周期发送 → 超时保护
+      - text: 04 / 07
+    - text: 05 / 07 06 / 07 07 / 07
+  - navigation "翻页控制" [ref=e20]:
+    - button "上一页" [ref=e21] [cursor=pointer]: ‹
+    - generic [ref=e22]: 4 / 7
+    - button "下一页" [ref=e23] [cursor=pointer]: ›

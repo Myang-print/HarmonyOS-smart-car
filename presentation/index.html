@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" href="data:,">
+  <title>HarmonyOS 智能小车实训汇报</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --panel: #f3f6fa;
+      --text: #111827;
+      --muted: #536274;
+      --cyan: #4E79A7;
+      --orange: #F28E2B;
+      --green: #76B7B2;
+      --red: #E15759;
+      --line: rgba(30, 58, 86, .2);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      overflow: hidden;
+      background: #e8edf3;
+      color: var(--text);
+      font-family: "Microsoft YaHei", "Noto Sans SC", Arial, sans-serif;
+    }
+
+    body {
+      display: grid;
+      place-items: center;
+    }
+
+    .deck {
+      position: relative;
+      width: min(100vw, calc(100vh * 16 / 9));
+      height: min(100vh, calc(100vw * 9 / 16));
+      background: var(--bg);
+      overflow: hidden;
+      box-shadow: 0 24px 70px rgba(31, 56, 82, .2);
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: none;
+      padding: 6.5% 7%;
+    }
+
+    .slide.active { display: block; }
+
+    .slide.compact {
+      padding-top: 4.5%;
+      padding-bottom: 4.5%;
+    }
+
+    .slide.compact h2 { margin-bottom: 2.2%; }
+
+    .slide::after {
+      content: attr(data-page);
+      position: absolute;
+      right: 3.5%;
+      bottom: 3%;
+      color: var(--muted);
+      font-size: clamp(11px, 1.15vw, 18px);
+      letter-spacing: .12em;
+    }
+
+    h1, h2, h3, p { margin-top: 0; }
+
+    h1 {
+      max-width: 820px;
+      margin-bottom: 2.5%;
+      font-size: clamp(40px, 5.3vw, 82px);
+      line-height: 1.08;
+      letter-spacing: -.04em;
+    }
+
+    h2 {
+      margin-bottom: 4%;
+      font-size: clamp(30px, 3.4vw, 54px);
+      line-height: 1.15;
+      letter-spacing: -.025em;
+    }
+
+    h3 {
+      margin-bottom: 1em;
+      color: var(--muted);
+      font-size: clamp(16px, 1.6vw, 25px);
+      font-weight: 600;
+    }
+
+    p, li, td, th {
+      font-size: clamp(14px, 1.55vw, 25px);
+      line-height: 1.45;
+    }
+
+    ul {
+      margin: 0;
+      padding-left: 1.25em;
+    }
+
+    li { margin: .42em 0; }
+
+    .eyebrow {
+      margin-bottom: 1.4%;
+      color: var(--cyan);
+      font-size: clamp(13px, 1.25vw, 20px);
+      font-weight: 700;
+      letter-spacing: .14em;
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: clamp(18px, 2vw, 32px);
+    }
+
+    .accent { color: var(--cyan); }
+    .orange { color: var(--orange); }
+    .safe { color: var(--red); }
+
+    .cover {
+      display: grid;
+      grid-template-columns: 1fr;
+      align-items: center;
+      height: 100%;
+    }
+
+    .cover > div { max-width: 900px; }
+
+    .presenters {
+      margin-top: 9%;
+      color: var(--text);
+      font-size: clamp(16px, 1.6vw, 26px);
+    }
+
+    .photo {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 3px;
+      filter: saturate(.72) contrast(1.08);
+    }
+
+    .photo-wrap {
+      position: relative;
+      height: 72%;
+    }
+
+    .photo-wrap::before {
+      content: "";
+      position: absolute;
+      inset: -10px 10px 10px -10px;
+      border: 2px solid var(--cyan);
+      z-index: -1;
+    }
+
+    .architecture {
+      display: grid;
+      grid-template-columns: 1fr .16fr 1fr;
+      align-items: stretch;
+      gap: 2.5%;
+      margin-top: 5%;
+    }
+
+    .system {
+      padding: 7%;
+      border-top: 5px solid var(--cyan);
+      background: var(--panel);
+    }
+
+    .system.stm { border-color: var(--orange); }
+    .system strong { font-size: clamp(26px, 2.7vw, 44px); }
+    .system p { margin: 1em 0 0; color: var(--muted); }
+
+    .link {
+      display: grid;
+      place-items: center;
+      color: var(--muted);
+      text-align: center;
+      font-size: clamp(11px, 1.15vw, 18px);
+    }
+
+    .link b {
+      display: block;
+      color: var(--text);
+      font-size: clamp(28px, 3vw, 48px);
+    }
+
+    .safety-line {
+      margin-top: 3.2%;
+      padding-top: 1.8%;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      text-align: center;
+      font-size: clamp(14px, 1.5vw, 24px);
+    }
+
+    .timeline {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1.8%;
+      margin-top: 6%;
+    }
+
+    .step {
+      position: relative;
+      min-height: 170px;
+      padding: 15% 10% 10%;
+      border-top: 4px solid var(--cyan);
+      background: var(--panel);
+    }
+
+    .step:not(:last-child)::after {
+      content: "›";
+      position: absolute;
+      top: 34%;
+      right: -14%;
+      z-index: 2;
+      color: var(--muted);
+      font-size: clamp(28px, 3vw, 48px);
+    }
+
+    .step b { font-size: clamp(17px, 1.7vw, 27px); }
+    .step span { display: block; margin-top: .8em; color: var(--muted); font-size: clamp(12px, 1.2vw, 19px); }
+    .step:last-child { border-color: var(--green); }
+
+    .metrics {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 5%;
+      color: var(--muted);
+      font-size: clamp(13px, 1.35vw, 21px);
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 6%;
+      align-items: start;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    th, td {
+      padding: .65em .55em;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+    }
+
+    th { color: var(--cyan); font-weight: 700; }
+
+    .iteration {
+      padding-left: 7%;
+      border-left: 2px solid var(--line);
+    }
+
+    .iteration div { margin-bottom: 8%; }
+    .iteration b { display: block; margin-bottom: .4em; color: var(--orange); font-size: clamp(16px, 1.55vw, 25px); }
+    .iteration p { margin: 0; color: var(--muted); }
+
+    .scenario-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      grid-template-rows: repeat(2, minmax(0, 1fr));
+      gap: 14px 2%;
+      margin-top: 1.5%;
+    }
+
+    .scenario {
+      min-height: 0;
+      padding: 5.5% 6%;
+      border-top: 3px solid var(--cyan);
+      background: var(--panel);
+    }
+
+    .scenario.warn { border-color: var(--orange); }
+    .scenario.stop { border-color: var(--red); }
+    .scenario b { font-size: clamp(16px, 1.55vw, 25px); }
+    .scenario p { margin: .4em 0 0; color: var(--muted); font-size: clamp(12px, 1.08vw, 17px); line-height: 1.35; }
+
+    .track-layout {
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 5%;
+      height: 72%;
+    }
+
+    .track-images {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      grid-template-rows: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .track-images img { width: 100%; height: 100%; object-fit: cover; min-height: 0; }
+    .track-images img:first-child { grid-row: 1 / 3; }
+
+    .route {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+      counter-reset: route;
+    }
+
+    .route li {
+      display: grid;
+      grid-template-columns: 2.1em 1fr;
+      gap: .7em;
+      align-items: center;
+      margin: .7em 0;
+    }
+
+    .route li::before {
+      counter-increment: route;
+      content: counter(route, decimal-leading-zero);
+      color: var(--cyan);
+      font-weight: 700;
+    }
+
+    .learning {
+      display: grid;
+      grid-template-columns: 1fr 1.2fr;
+      gap: 0 5%;
+      margin-top: 3%;
+    }
+
+    .learning div {
+      padding: .8em 0;
+      border-bottom: 1px solid var(--line);
+      font-size: clamp(14px, 1.5vw, 24px);
+    }
+
+    .learning .teacher { color: var(--cyan); font-weight: 700; }
+    .learning .gain { color: var(--text); }
+
+    .takeaway {
+      margin-top: 2.5%;
+      color: var(--muted);
+      font-size: clamp(18px, 2vw, 32px);
+      text-align: center;
+    }
+
+    .thanks {
+      display: grid;
+      place-items: center;
+      height: 100%;
+      text-align: center;
+    }
+
+    .thanks h1 { margin-bottom: .2em; }
+    .thanks p { color: var(--muted); font-size: clamp(20px, 2.3vw, 36px); }
+
+    .controls {
+      position: fixed;
+      left: 50%;
+      bottom: 18px;
+      z-index: 10;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      transform: translateX(-50%);
+      opacity: .5;
+      transition: opacity .2s;
+    }
+
+    .controls:hover { opacity: 1; }
+
+    button {
+      width: 42px;
+      height: 34px;
+      border: 1px solid rgba(30, 58, 86, .28);
+      border-radius: 4px;
+      background: rgba(255, 255, 255, .94);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 18px;
+    }
+
+    .counter {
+      min-width: 54px;
+      color: var(--text);
+      font-size: 13px;
+      text-align: center;
+    }
+
+    @media print {
+      html, body { overflow: visible; background: white; }
+      body { display: block; }
+      .deck { width: 100%; height: auto; box-shadow: none; }
+      .slide { position: relative; display: block; width: 100vw; height: 56.25vw; break-after: page; }
+      .controls { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="deck" aria-label="HarmonyOS 智能小车实训汇报">
+    <section class="slide active" data-page="01 / 07">
+      <div class="cover">
+        <div>
+          <div class="eyebrow">EMBEDDED SYSTEMS PRACTICE</div>
+          <h1>HarmonyOS<br><span class="accent">智能小车</span>实训汇报</h1>
+          <p class="subtitle">双控制器协同、闭环控制与自主循迹</p>
+          <p class="presenters">汇报人：彭程、杨皓然</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" data-page="02 / 07">
+      <div class="eyebrow">SYSTEM ARCHITECTURE</div>
+      <h2>Hi3861 决策，STM32 执行</h2>
+      <div class="architecture">
+        <article class="system">
+          <strong class="accent">Hi3861</strong>
+          <p>传感器采集<br>OpenHarmony 任务调度<br>循迹与路径决策</p>
+        </article>
+        <div class="link"><span><b>→</b>左右轮<br>目标速度</span></div>
+        <article class="system stm">
+          <strong class="orange">STM32F103</strong>
+          <p>串口协议解析<br>编码器 PI 闭环<br>PWM 与电机执行</p>
+        </article>
+      </div>
+      <div class="safety-line"><span class="safe">安全边界</span>　上电默认停车　·　非法指令不执行　·　通信失联约 2 秒停车</div>
+    </section>
+
+    <section class="slide" data-page="03 / 07">
+      <div class="eyebrow">DEVELOPMENT PATH</div>
+      <h2>从基础外设到整车控制</h2>
+      <div class="timeline">
+        <div class="step"><b>基础外设</b><span>GPIO<br>UART<br>I2C</span></div>
+        <div class="step"><b>电机执行</b><span>PWM<br>方向控制<br>状态灯</span></div>
+        <div class="step"><b>闭环控制</b><span>编码器测速<br>PI 调节</span></div>
+        <div class="step"><b>双芯片联调</b><span>速度协议<br>异常停车</span></div>
+        <div class="step"><b>智能功能</b><span>蓝牙遥控<br>红外循迹</span></div>
+      </div>
+      <div class="metrics">
+        <span>双 MCU 协同</span><span>左右轮独立速度</span><span>前进 / 后退 / 差速 / 停车</span><span>分层测试记录</span>
+      </div>
+    </section>
+
+    <section class="slide compact" data-page="04 / 07">
+      <div class="eyebrow">BLUETOOTH CONTROL</div>
+      <h2>蓝牙控制小车的实现</h2>
+      <div class="scenario-grid">
+        <article class="scenario"><b>有效指令</b><p>统一大小写和格式，映射为前进、后退、转向或停车意图</p></article>
+        <article class="scenario"><b>持续按键</b><p>周期刷新当前目标，避免单次数据丢失造成动作中断</p></article>
+        <article class="scenario"><b>连续切换</b><p>最新有效指令覆盖旧目标，减少动作排队带来的延迟</p></article>
+        <article class="scenario warn"><b>未知字符</b><p>拒绝执行无法识别的数据，并回到安全动作</p></article>
+        <article class="scenario warn"><b>数据不完整</b><p>等待完整消息或重新同步，不把半条消息当作命令</p></article>
+        <article class="scenario stop"><b>通信中断</b><p>超过限定时间未收到有效更新，底层主动停车</p></article>
+      </div>
+      <div class="safety-line">接收输入　→　校验与解析　→　动作映射　→　周期发送　→　超时保护</div>
+    </section>
+
+    <section class="slide compact" data-page="05 / 07">
+      <div class="eyebrow">LINE FOLLOWING</div>
+      <h2>循迹小车的实现</h2>
+      <div class="scenario-grid">
+        <article class="scenario"><b>稳定居中</b><p>左右轮保持相近目标速度，持续沿参考线前进</p></article>
+        <article class="scenario"><b>轻微偏移</b><p>根据偏移方向进行小幅差速修正，避免过度摆动</p></article>
+        <article class="scenario"><b>明显偏移</b><p>增大修正量，同时限制变化速度，保持运动连续</p></article>
+        <article class="scenario warn"><b>交叉或宽线</b><p>结合进入顺序、持续时间和当前状态判断特殊事件</p></article>
+        <article class="scenario warn"><b>短暂丢线</b><p>参考最近方向进行有限恢复，超时后停止搜索</p></article>
+        <article class="scenario stop"><b>传感器异常</b><p>过滤抖动并检测无效读数，无法判断时立即停车</p></article>
+      </div>
+      <div class="safety-line">连续采样　→　滤波消抖　→　状态分类　→　差速控制　→　恢复或停车</div>
+    </section>
+
+    <section class="slide" data-page="06 / 07">
+      <div class="eyebrow">WHAT WE LEARNED</div>
+      <h2>从搭建环境到理解工程方法</h2>
+      <div class="learning">
+        <div class="teacher">老师的指导</div><div class="gain">我们掌握的能力</div>
+        <div class="teacher">手把手搭建开发环境</div><div class="gain">完成工具配置、编译与烧录</div>
+        <div class="teacher">逐步讲解电路与元件图</div><div class="gain">识别接口、引脚和硬件连接</div>
+        <div class="teacher">引导正确的开发流程</div><div class="gain">先验证底层，再联调通信和算法</div>
+        <div class="teacher">将 Git 融入开发过程</div><div class="gain">记录修改、保存版本、便于回退</div>
+        <div class="teacher">鼓励主动修改参数</div><div class="gain">通过实验理解原理与设计方法</div>
+      </div>
+      <div class="takeaway">从“照着运行”到“理解原因、修改参数、验证结果”</div>
+    </section>
+
+    <section class="slide" data-page="07 / 07">
+      <div class="thanks">
+        <div>
+          <div class="eyebrow">THANK YOU</div>
+          <h1>谢谢老师</h1>
+          <p>请批评指正</p>
+          <p class="presenters">彭程　杨皓然</p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <nav class="controls" aria-label="翻页控制">
+    <button id="prev" type="button" aria-label="上一页">‹</button>
+    <span class="counter" id="counter">1 / 7</span>
+    <button id="next" type="button" aria-label="下一页">›</button>
+  </nav>
+
+  <script>
+    const slides = [...document.querySelectorAll('.slide')];
+    const counter = document.getElementById('counter');
+    let current = Math.max(0, Math.min(slides.length - 1, Number(location.hash.slice(1)) - 1 || 0));
+
+    function show(index) {
+      current = (index + slides.length) % slides.length;
+      slides.forEach((slide, i) => slide.classList.toggle('active', i === current));
+      counter.textContent = `${current + 1} / ${slides.length}`;
+      history.replaceState(null, '', `#${current + 1}`);
+    }
+
+    document.getElementById('prev').addEventListener('click', () => show(current - 1));
+    document.getElementById('next').addEventListener('click', () => show(current + 1));
+    document.addEventListener('keydown', (event) => {
+      if (['ArrowRight', 'ArrowDown', 'PageDown', ' '].includes(event.key)) show(current + 1);
+      if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(event.key)) show(current - 1);
+      if (event.key === 'Home') show(0);
+      if (event.key === 'End') show(slides.length - 1);
+    });
+
+    show(current);
+  </script>
+</body>
+</html>
