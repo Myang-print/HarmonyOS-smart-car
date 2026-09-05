@@ -35,6 +35,7 @@ HarmonyOS-smart-car/
 │   ├── workflows/            # Git同步与推送流程
 │   └── notebooks/            # Linux、远程开发等主题笔记
 ├── materials/                # 驱动、工具、镜像、资料与参考代码分类
+├── presentation/             # 实训汇报PPT内容、风格与素材工作区
 ├── src/
 │   ├── harmony/              # 可同步到OpenHarmony app/的Hi3861示例
 │   └── stm32/                # 独立STM32F103 Keil阶段工程
