@@ -18,6 +18,9 @@
 | `12.0_UART_Correspondence/` | 规划综合轨迹并控制 STM32 双轮速度 | GPIO11/UART2，115200 baud |
 | `12.1_Bluetooth_Control/` | 接收手机蓝牙字符并转发双轮速度帧 | GPIO0/1 UART1 9600；GPIO11/12 UART2 115200 |
 | `17_Iter0_Sensor_Diagnostic/` | Iter0 双路红外原始电平诊断，不驱动电机 | GPIO13/14、结构化 UART 日志 |
+| `18_Iter1_Motor_Diagnostic/` | Iter1 UART2 电机链路自动动作与停车诊断 | GPIO11/UART2、115200、自动停车 |
+| `19_Iter1_Failsafe_Diagnostic/` | Iter1 单帧前进后静默，验证 STM32 失联停车 | GPIO11/UART2、115200、2秒超时 |
+| `20_Iter1_Line_Follow_Diagnostic/` | Iter1 直线循迹 FSM：正常循迹与持续 `11` 原地扫描恢复 | GPIO13/14、GPIO11/UART2 |
 | `demolink/` | OpenHarmony Demo SDK 链接示例 | `SYS_RUN` |
 | `iothardware/` | GPIO9 LED 闪烁示例 | GPIO9 |
 | `samgr/` | SAMGR 服务、特性、消息与任务示例 | 系统服务框架 |
@@ -26,7 +29,7 @@
 
 ## 构建选择
 
-根 `BUILD.gn` 的 `features` 决定实际编入固件的应用。通常一次只启用一个会占用相同 GPIO/UART 的业务示例。当前仅启用 `12.1_Bluetooth_Control`，避免其他任务竞争UART1、UART2或小车控制权。
+根 `BUILD.gn` 的 `features` 决定实际编入固件的应用。通常一次只启用一个会占用相同 GPIO/UART 的业务示例。当前 Hi3861 构建选择为 `20_Iter1_Line_Follow_Diagnostic:iter1_line_follow_diagnostic`。该目录实现有限 FSM：普通状态 `00/10/01` 循迹，持续 `11` 时有限原地扫描恢复，恢复失败停车。
 
 ## 两套车控协议
 

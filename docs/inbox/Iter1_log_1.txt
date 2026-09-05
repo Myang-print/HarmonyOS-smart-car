@@ -1,0 +1,45 @@
+Hi3861 日志：
+
+[2026-09-05 11:19:04.271]# RECV ASCII>
+ready to OS start
+sdk ver:Hi3861V100R001C00SPC025 2020-09-03 18:10:00
+FileSystem mount ok.
+wifi init success!
+
+
+
+[2026-09-05 11:19:04.407]# RECV ASCII>
+ITER1,FAILSAFE,FORWARD_ONCE,WRITTEN=6
+ITER1,FAILSAFE,SILENCE_NOW,WAIT_4_SECONDS
+00 00:00:00 0 196 D 0/HIVIEW: hilog init success.
+00 00:00:00 0 196 D 0/HIVIEW: log limit init success.
+00 00:00:00 0 196 I 1/SAMGR: Bootstrap core services(count:3).
+00 00:00:00 0 196 I 1/SAMGR: Init service:0x4aeafc TaskPool:0xfa224
+00 00:00:00 0 196 I 1/SAMGR: Init service:0x4aeb20 TaskPool:0xfa894
+00 00:00:00 0 196 I 1/SAMGR: Init service:0x4aec30 TaskPool:0xfaa54
+00 00:00:00 0 228 I 1/SAMGR: Init service 0x4aeb20 <time: 0ms> success!
+00 00:00:00 0 128 I 1/SAMGR: Init service 0x4aeafc <time: 0ms> success!
+00 00:00:00 0 72 D 0/HIVIEW: hiview init success.
+00 00:00:00 0 72 I 1/SAMGR: Init service 0x4aec30 <time: 0ms> success!
+00 00:00:00 0 72 I 1/SAMGR: Initialized all core system services!
+00 00:00:00 0 128 I 1/SAMGR: Bootstrap system and application services(count:0).
+00 00:00:00 0 128 I 1/SAMGR: Initialized all system and application services!
+00 00:00:00 0 128 I 1/SAMGR: Bootstrap dynamic registered services
+
+[2026-09-05 11:19:04.465]# RECV ASCII>
+(count:0).
+
+
+[2026-09-05 11:19:08.375]# RECV ASCII>
+ITER1,FAILSAFE,OBSERVATION_WINDOW_END
+
+肉眼现象：
+车轮在收到一次前进帧后是否转动：是
+约2秒后是否自动停止：是
+最终是否保持停止：是
+是否发热：无
+是否有异味：无
+是否有异常声音：无
+
+
+STM32 日志：没有

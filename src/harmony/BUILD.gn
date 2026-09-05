@@ -2,7 +2,7 @@ import("//build/lite/config/component/lite_component.gni")
 
 lite_component("app") {
     features = [
-        # Iter0：只启用无电机动作的红外传感器诊断。
-        "17_Iter0_Sensor_Diagnostic:iter0_sensor_diagnostic",
+        # Iter1：只启用低速直线循迹诊断。
+        "20_Iter1_Line_Follow_Diagnostic:iter1_line_follow_diagnostic",
     ]
 }
